@@ -69,6 +69,33 @@ function addMediaEntry(entryData) {
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
     const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
     
+    // Determine item type and set appropriate status based on new logic
+    let itemStatus;
+    const ratingValue = entryData.rating;
+    const isFinished = entryData.isFinished; // This will come from the checkbox
+    
+    if (!entryData.startDate && !entryData.finishDate) {
+        // Type 1: No remembered dates
+        if (isFinished || (ratingValue && ratingValue !== '' && ratingValue !== 'N/A' && ratingValue !== '0' && ratingValue !== 0)) {
+            // Either explicitly marked as finished OR has a rating = completed without dates
+            itemStatus = 'completed-no-dates';
+        } else {
+            // Not marked as finished and no rating = in progress without known start date
+            itemStatus = 'in-progress-no-dates';
+        }
+    } else if (!entryData.startDate && entryData.finishDate) {
+        // Type 2: Unknown start, known finish
+        itemStatus = 'completed';
+    } else if (entryData.startDate && !entryData.finishDate) {
+        // Type 3: In progress with known start
+        itemStatus = 'in-progress';  
+    } else if (entryData.startDate && entryData.finishDate) {
+        // Type 4: Full date info
+        itemStatus = 'completed';
+    } else {
+        itemStatus = 'in-progress-no-dates'; // fallback
+    }
+
     if (!entryData.title || !entryData.type) {
       throw new Error('Missing required fields: title or type');
     }
@@ -94,7 +121,7 @@ function addMediaEntry(entryData) {
       notes: entryData.notes || '',
       coverurl: metadata.coverURL || '',
       metadata: JSON.stringify(metadata),
-      status: entryData.finishDate ? 'completed' : (entryData.startDate ? 'in-progress' : 'unknown-dates')
+      status: itemStatus
     };
 
     const rowData = headers.map(header => entryMap[header.toLowerCase()] || '');
@@ -220,15 +247,26 @@ function getAllEntries() {
         entry[header] = value;
       });
       
-      // Set status based on data if not explicitly set
+      // Set status based on data with improved logic for item types
       if (!entry.status) {
-        if (entry.finishdate) {
+        if (!entry.startdate && !entry.finishdate) {
+          // Type 1: No dates - check if has rating to determine if finished
+          if (entry.rating && entry.rating !== 'N/A' && entry.rating !== '' && typeof entry.rating === 'number' && entry.rating > 0) {
+            entry.status = 'completed-no-dates';
+          } else {
+            entry.status = 'in-progress-no-dates';
+          }
+        } else if (!entry.startdate && entry.finishdate) {
+          // Type 2: Unknown start, known finish
           entry.status = 'completed';
-        } else if (entry.startdate) {
+        } else if (entry.startdate && !entry.finishdate) {
+          // Type 3: In progress (has start, no finish)
           entry.status = 'in-progress';
+        } else if (entry.startdate && entry.finishdate) {
+          // Type 4: Full date info
+          entry.status = 'completed';
         } else {
-          // Items without dates are considered started but with unknown dates
-          entry.status = 'unknown-dates';
+          entry.status = 'in-progress-no-dates'; // fallback
         }
       }
       
@@ -297,14 +335,25 @@ function updateEntry(entryId, updateData) {
             if (field.toLowerCase().includes('date') && value) {
               value = new Date(value);
             }
+            
+            // Handle empty date fields
+            if (field.toLowerCase().includes('date') && !value) {
+              value = '';
+            }
 
-            if (field.toLowerCase() === 'rating' && (value === 0 || value === '0')) {
-              value = 'N/A';
+            // Handle rating - convert 0 to 'N/A' for display, but keep 0 for logic
+            if (field.toLowerCase() === 'rating') {
+              if (value === 0 || value === '0') {
+                value = 'N/A';
+              }
             }
             
             sheet.getRange(i + 1, headerIndex + 1).setValue(value);
           }
         });
+        
+        // Log the update for debugging
+        console.log(`Updated entry ${entryId} with status: ${updateData.status}`);
         
         return { success: true, message: 'Entry updated successfully' };
       }
