@@ -1101,6 +1101,46 @@
         border-radius: 50%;
       }
 
+      .media-card[data-status="completed-no-dates"] {
+        border-left: 4px solid var(--accent-success);
+      }
+
+      .media-card[data-status="in-progress-no-dates"] {
+        border-left: 4px solid var(--accent-warning);
+      }
+
+      .media-card[data-status="completed-no-dates"]::before {
+        content: '✓';
+        position: absolute;
+        top: var(--spacing-sm);
+        right: var(--spacing-sm);
+        width: 16px;
+        height: 16px;
+        background: var(--accent-success);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.7rem;
+        color: white;
+      }
+
+      .media-card[data-status="in-progress-no-dates"]::before {
+        content: '⏳';
+        position: absolute;
+        top: var(--spacing-sm);
+        right: var(--spacing-sm);
+        width: 16px;
+        height: 16px;
+        background: var(--accent-warning);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+      }
+
       @keyframes pulse {
         0%, 100% { 
           opacity: 1; 
@@ -1110,6 +1150,37 @@
           opacity: 0.7; 
           transform: scale(1.1);
         }
+      }
+
+      /* Enhanced status indicators for all item types */
+      .media-card[data-status="unknown-dates"]::before {
+        content: '?';
+        position: absolute;
+        top: var(--spacing-sm);
+        right: var(--spacing-sm);
+        width: 20px;
+        height: 20px;
+        background: var(--text-muted);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.8rem;
+        color: var(--bg-primary);
+      }
+
+      .card-dates {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin-bottom: var(--spacing-sm);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+      }
+
+      .card-dates i {
+        color: var(--accent-primary);
       }
 
       /* Statistics Styles */
@@ -2554,6 +2625,13 @@
         document.getElementById('type').addEventListener('change', (e) => {
           document.getElementById('authorSection').style.display = e.target.value === 'book' ? 'block' : 'none';
         });
+
+        // Make sure this gets called on page load too
+        document.addEventListener('DOMContentLoaded', updateFormBasedOnDates);
+
+        // Add listeners for date changes
+        document.getElementById('startDate').addEventListener('change', updateFormBasedOnDates);
+        document.getElementById('finishDate').addEventListener('change', updateFormBasedOnDates);
         
         // Keyboard shortcuts
         document.addEventListener('keydown', handleKeyboardShortcuts);
@@ -2575,6 +2653,37 @@
             }, 300));
           }
         }, 100);
+      }
+
+      // Enhanced form logic for different item types
+      function updateFormBasedOnDates() {
+        const startDate = document.getElementById('startDate').value;
+        const finishDate = document.getElementById('finishDate').value;
+        const ratingSection = document.getElementById('ratingSection');
+        const ratingLabel = document.querySelector('label[for="rating"]');
+        
+        if (!startDate && !finishDate) {
+          // Type 1: No dates - ALWAYS show rating so user can decide
+          ratingSection.style.display = 'flex';
+          ratingLabel.innerHTML = `
+            <i class="fas fa-star"></i>
+            Rating (0 = in progress, 1-10 = finished)
+            <small style="display: block; font-weight: normal; color: var(--text-secondary);">
+              Rate it if you've finished it, or leave at 0 if still consuming.
+            </small>
+          `;
+        } else if (!startDate && finishDate) {
+          // Type 2: Only finish date
+          ratingSection.style.display = 'flex';
+          ratingLabel.innerHTML = `<i class="fas fa-star"></i> Rating (0 for N/A)`;
+        } else if (startDate && !finishDate) {
+          // Type 3: In progress - hide rating
+          ratingSection.style.display = 'none';
+        } else {
+          // Type 4: Both dates
+          ratingSection.style.display = 'flex';
+          ratingLabel.innerHTML = `<i class="fas fa-star"></i> Rating (0 for N/A)`;
+        }
       }
 
       // Switch between different views
@@ -2948,9 +3057,28 @@
         const coverImage = entry.coverurl || getPlaceholderImage(entry.type, entry.title);
         const notesIcon = entry.notes ? `<i class="fas fa-sticky-note notes-indicator" title="Has Notes"></i>` : '';
         
+        // Enhanced date display for different item types
+        let dateDisplay = '';
+        if (entry.status === 'unknown-dates') {
+          dateDisplay = '<i class="fas fa-question-circle"></i> Dates not recorded';
+        } else if (entry.status === 'completed' && !entry.startdate && entry.finishdate) {
+          const finishDate = new Date(entry.finishdate).toLocaleDateString();
+          dateDisplay = `<i class="fas fa-flag-checkered"></i> Finished: ${finishDate}`;
+        } else if (entry.status === 'in-progress') {
+          const startDate = entry.startdate ? new Date(entry.startdate).toLocaleDateString() : 'Unknown';
+          dateDisplay = `<i class="fas fa-play"></i> Started: ${startDate}`;
+        } else if (entry.status === 'completed' && entry.startdate && entry.finishdate) {
+          const startDate = new Date(entry.startdate).toLocaleDateString();
+          const finishDate = new Date(entry.finishdate).toLocaleDateString();
+          dateDisplay = `<i class="fas fa-calendar"></i> ${startDate} - ${finishDate}`;
+        }
+
+        // In createMediaCard function, update the rating display logic:
         let ratingDisplay = '';
-        if (entry.status === 'completed') {
-            if (typeof entry.rating === 'number') {
+        const isCompleted = entry.status === 'completed' || entry.status === 'completed-no-dates';
+
+        if (isCompleted) {
+            if (typeof entry.rating === 'number' && entry.rating > 0) {
                 ratingDisplay = `<span class="rating">${entry.rating} <i class="fas fa-star"></i></span>`;
             } else if (entry.rating === 'N/A') {
                 ratingDisplay = `<span class="rating" style="color: var(--text-muted); font-size: 0.8rem;">Not Rated</span>`;
@@ -2966,13 +3094,14 @@
           <div class="card-content">
             <div class="card-header">
               <h3 class="card-title">${entry.title}</h3>
-              ${entry.status === 'in-progress' ? `<button class="card-finish-btn" onclick="markAsFinished(event, '${entry.id}')" title="Mark as Finished"><i class="fas fa-check"></i></button>` : ''}
+              ${(entry.status === 'in-progress' || entry.status === 'in-progress-no-dates') ? `<button class="card-finish-btn" onclick="markAsFinished(event, '${entry.id}')" title="Mark as Finished"><i class="fas fa-check"></i></button>` : ''}
             </div>
             ${entry.author ? `<p class="card-author"><i class="fas fa-user-edit"></i> ${entry.author}</p>` : ''}
-            <div class="card-meta">
-              <span class="type-badge ${entry.type}">${capitalizeFirst(entry.type)}</span>
-              <span>${notesIcon}${ratingDisplay}</span>
-            </div>
+              <div class="card-dates">${dateDisplay}</div>
+              <div class="card-meta">
+                <span class="type-badge ${entry.type}">${capitalizeFirst(entry.type)}</span>
+                <span>${notesIcon}${ratingDisplay}</span>
+              </div>
           </div>
         `;
         
@@ -3249,9 +3378,10 @@
       function resetForm() {
         document.getElementById('addEntryForm').reset();
         document.getElementById('startDate').value = '';
-        document.getElementById('rating').value = 5;
-        document.getElementById('ratingSection').style.display = 'none'; // Ensure it's hidden on reset
+        document.getElementById('rating').value = 0; // Start at 0, not 5
+        document.getElementById('ratingSection').style.display = 'flex'; // Show by default
         updateRatingDisplay();
+        updateFormBasedOnDates(); // Call this to set proper labels
         clearFormFeedback();
       }
 
@@ -3484,8 +3614,49 @@
               <!-- Active/Completed Section -->
               <div class="edit-section-active" style="${entry.status === 'pending' ? 'display:none;' : ''}">
                   <div class="modal-dates view-mode">
-                    ${entry.startdate ? `<p><strong>Started:</strong> ${formatDate(entry.startdate)}</p>` : ''}
-                    ${entry.finishdate ? `<p><strong>Finished:</strong> ${formatDate(entry.finishdate)}</p>` : ''}
+                    ${(() => {
+                      // Enhanced modal content for different item types
+                      if (entry.status === 'completed-no-dates') {
+                        return `
+                          <p><strong>Status:</strong> <span style="color: var(--accent-success);">Finished (dates not recorded)</span></p>
+                          <p style="color: var(--text-secondary); font-size: 0.9em; margin-top: 0.5em; font-style: italic;">
+                            This item was completed but start/finish dates weren't recorded.
+                          </p>
+                        `;
+                      } else if (entry.status === 'in-progress-no-dates') {
+                        return `
+                          <p><strong>Status:</strong> <span style="color: var(--accent-warning);">In Progress (dates not recorded)</span></p>
+                          <p style="color: var(--text-secondary); font-size: 0.9em; margin-top: 0.5em; font-style: italic;">
+                            This item is in progress but dates aren't being tracked.
+                          </p>
+                        `;
+                      } else if (entry.status === 'completed' && !entry.startdate && entry.finishdate) {
+                        return `
+                          <p><strong>Finished:</strong> ${formatDate(entry.finishdate)}</p>
+                          <p style="color: var(--text-secondary); font-size: 0.9em; margin-top: 0.5em; font-style: italic;">
+                            Start date was not recorded for this item.
+                          </p>
+                        `;
+                      } else if (entry.status === 'in-progress' && entry.startdate) {
+                        return `
+                          <p><strong>Started:</strong> ${formatDate(entry.startdate)}</p>
+                          <p style="color: var(--text-secondary); font-size: 0.9em; margin-top: 0.5em; font-style: italic;">
+                            Currently in progress.
+                          </p>
+                        `;
+                      } else if (entry.status === 'completed' && entry.startdate && entry.finishdate) {
+                        return `
+                          <p><strong>Started:</strong> ${formatDate(entry.startdate)}</p>
+                          <p><strong>Finished:</strong> ${formatDate(entry.finishdate)}</p>
+                        `;
+                      } else {
+                        // Fallback
+                        return `
+                          ${entry.startdate ? `<p><strong>Started:</strong> ${formatDate(entry.startdate)}</p>` : ''}
+                          ${entry.finishdate ? `<p><strong>Finished:</strong> ${formatDate(entry.finishdate)}</p>` : ''}
+                        `;
+                      }
+                    })()}
                   </div>
                   <div class="form-row edit-mode">
                     <div class="form-group">
@@ -3498,19 +3669,22 @@
                     </div>
                   </div>
                   <div class="view-mode">
-                      ${(() => {
-                          if (entry.status !== 'completed') return '';
-                          let ratingText = '<strong>Rating:</strong> ';
-                          if (typeof entry.rating === 'number') {
-                              ratingText += `${entry.rating}/10`;
-                          } else if (entry.rating === 'N/A') {
-                              ratingText += 'Not Rated';
-                          } else {
-                              ratingText += `<span style="color: var(--accent-warning);">Pending Rating</span>`;
-                          }
-                          return `<p>${ratingText}</p>`;
-                      })()}
-                  </div>
+                    ${(() => {
+                        // Show rating for all completed items (regardless of date recording)
+                        const isCompleted = entry.status === 'completed' || entry.status === 'completed-no-dates';
+                        if (!isCompleted) return '';
+                        
+                        let ratingText = '<strong>Rating:</strong> ';
+                        if (typeof entry.rating === 'number' && entry.rating > 0) {
+                            ratingText += `${entry.rating}/10`;
+                        } else if (entry.rating === 'N/A') {
+                            ratingText += 'Not Rated';
+                        } else {
+                            ratingText += `<span style="color: var(--accent-warning);">Pending Rating</span>`;
+                        }
+                        return `<p>${ratingText}</p>`;
+                    })()}
+                </div>
                   <div class="form-group edit-mode">
                       <label for="editRating">Rating (0 for N/A)</label>
                       <div class="rating-container">
@@ -3588,6 +3762,27 @@
 
         const editHypeRating = document.getElementById('editHypeRating');
         if(editHypeRating) editHypeRating.addEventListener('input', (e) => document.getElementById('editHypeRatingValue').textContent = e.target.value);
+      }
+
+      // Add this new function after the openEntryModal function
+      function updateEditModeStatus() {
+        const startDate = document.getElementById('editStartDate').value;
+        const finishDate = document.getElementById('editFinishDate').value;
+        const rating = parseInt(document.getElementById('editRating').value);
+        
+        let newStatus;
+        if (!startDate && !finishDate) {
+          // No dates - use rating to determine status
+          newStatus = (rating > 0) ? 'completed-no-dates' : 'in-progress-no-dates';
+        } else if (!startDate && finishDate) {
+          newStatus = 'completed';
+        } else if (startDate && !finishDate) {
+          newStatus = 'in-progress';
+        } else {
+          newStatus = 'completed';
+        }
+        
+        return newStatus;
       }
 
       function closeModal() {
@@ -3677,65 +3872,70 @@
 
       async function saveEntryChanges(event) {
         event.preventDefault();
-        if (!currentEntryId) return;
-
-        const originalEntry = currentEntries.find(e => e.id === currentEntryId);
-        if (!originalEntry) return;
-
-        let updateData = {
-            title: document.getElementById('editTitle').value.trim(),
-            type: document.getElementById('editType').value,
-            notes: document.getElementById('editNotes').value.trim(),
-            author: originalEntry.type === 'book' ? document.getElementById('editAuthor').value.trim() : '',
-        };
-
-        if (originalEntry.status === 'pending') {
-            updateData.tags = document.getElementById('editTags').value.trim();
-            updateData.hypeRating = parseInt(document.getElementById('editHypeRating').value);
-        } else {
-            updateData.startDate = document.getElementById('editStartDate').value;
-            updateData.finishDate = document.getElementById('editFinishDate').value;
-            updateData.rating = updateData.finishDate ? parseInt(document.getElementById('editRating').value) : ''; // The value '0' will be sent for N/A
-            
-            if (updateData.finishDate) updateData.status = 'completed';
-            else if (updateData.startDate) updateData.status = 'in-progress';
-            else updateData.status = 'unknown-dates';
+        
+        const entryId = document.getElementById('editEntryId').value;
+        const entry = currentEntries.find(e => e.id === entryId);
+        
+        if (!entry) {
+          showToast('Entry not found', 'error');
+          return;
         }
         
-        const saveBtn = document.querySelector('#modalEditForm button[type="submit"]');
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-
+        // Determine new status based on dates and rating
+        const newStatus = updateEditModeStatus();
+        
+        const updateData = {
+          title: document.getElementById('editTitle').value,
+          type: document.getElementById('editType').value,
+          startDate: document.getElementById('editStartDate').value || null,
+          finishDate: document.getElementById('editFinishDate').value || null,
+          rating: parseInt(document.getElementById('editRating').value),
+          notes: document.getElementById('editNotes').value,
+          status: newStatus
+        };
+        
+        // Add author if it's a book
+        const authorField = document.getElementById('editAuthor');
+        if (authorField) {
+          updateData.author = authorField.value;
+        }
+        
+        // Add pending-specific fields if it was a pending item
+        const tagsField = document.getElementById('editTags');
+        const hypeRatingField = document.getElementById('editHypeRating');
+        if (tagsField) updateData.tags = tagsField.value;
+        if (hypeRatingField) updateData.hypeRating = parseInt(hypeRatingField.value);
+        
+        console.log('Updating entry with data:', updateData); // Debug log
+        
         try {
-            // --- THIS IS THE FIX ---
-            // Wrap the call in a new Promise to correctly await the result.
-            const result = await new Promise((resolve, reject) => {
-                google.script.run
-                    .withSuccessHandler(resolve)
-                    .withFailureHandler(reject)
-                    .updateEntry(currentEntryId, updateData);
-            });
-
-            if (result.success) {
-                const entryIndex = currentEntries.findIndex(e => e.id === currentEntryId);
-                if (entryIndex !== -1) {
-                    currentEntries[entryIndex] = { ...currentEntries[entryIndex], ...updateData };
-                }
-                
-                openEntryModal(currentEntries[entryIndex]);
-                toggleEntryEdit(false); 
-                updateUI(); 
-                showToast('Entry updated successfully!', 'success');
-            } else {
-                // This will now correctly handle errors returned from the server
-                throw new Error(result.error || 'Unknown error occurred on the server.');
-            }
+          const result = await new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .updateEntry(entryId, updateData);
+          });
+          
+          if (result.success) {
+            // Update local data
+            Object.assign(entry, updateData);
+            entry.status = newStatus;
+            
+            toggleEntryEdit(false);
+            closeModal();
+            
+            // Refresh the current view
+            if (currentView === 'overview') renderOverview();
+            if (currentView === 'pending') renderPending();
+            updateRoomCounts();
+            
+            showToast('Entry updated successfully', 'success');
+          } else {
+            throw new Error(result.error);
+          }
         } catch (error) {
-            console.error('Error updating entry:', error);
-            showToast('Error: ' + error.message, 'error');
-        } finally {
-            saveBtn.disabled = false;
-            saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+          console.error('Error updating entry:', error);
+          showToast('Error: ' + error.message, 'error');
         }
       }
 

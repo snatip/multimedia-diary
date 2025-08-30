@@ -54,9 +54,13 @@ function validateEntryData(entryData) {
     errors.push('Type is required');
   }
   
-  // Start date is only required for non-pending entries
-  if (entryData.status !== 'pending' && !entryData.startDate) {
-    errors.push('Start date is required for active entries');
+  // Validate item types based on date combinations
+  if (entryData.status === 'unknown-dates' && (entryData.startDate || entryData.finishDate)) {
+    errors.push('Unknown-dates items should not have start or finish dates');
+  }
+
+  if (entryData.status === 'completed' && !entryData.startDate && !entryData.finishDate) {
+    errors.push('Completed items need at least a finish date or both dates');
   }
   
   // Valid types
@@ -65,10 +69,19 @@ function validateEntryData(entryData) {
     errors.push('Invalid content type');
   }
   
-  // Valid statuses
-  const validStatuses = ['pending', 'in-progress', 'completed', 'unknown-dates'];
+  // Valid statuses - updated list
+  const validStatuses = ['pending', 'in-progress', 'in-progress-no-dates', 'completed', 'completed-no-dates'];
   if (entryData.status && !validStatuses.includes(entryData.status)) {
     errors.push('Invalid status');
+  }
+
+  // Validate status logic
+  if (entryData.status === 'completed-no-dates' && (!entryData.rating || entryData.rating === '0' || entryData.rating === 0)) {
+    errors.push('Items marked as completed without dates must have a rating');
+  }
+
+  if (entryData.status === 'in-progress-no-dates' && entryData.rating && entryData.rating !== '0' && entryData.rating !== 0) {
+    errors.push('Items in progress without dates should not have a rating');
   }
   
   // Date validation
