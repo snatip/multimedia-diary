@@ -1,0 +1,4044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Multimedia Diary</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+      :root {
+        /* Color Scheme */
+        --bg-primary: #0a0a0a;
+        --bg-secondary: #1a1a1a;
+        --bg-tertiary: #2a2a2a;
+        --accent-primary: #6366f1;
+        --accent-secondary: #8b5cf6;
+        --accent-success: #10b981;
+        --accent-warning: #f59e0b;
+        --accent-danger: #ef4444;
+        --text-primary: #ffffff;
+        --text-secondary: #a1a1aa;
+        --text-muted: #71717a;
+        
+        /* Spacing */
+        --spacing-xs: 0.25rem;
+        --spacing-sm: 0.5rem;
+        --spacing-md: 1rem;
+        --spacing-lg: 1.5rem;
+        --spacing-xl: 2rem;
+        --spacing-2xl: 3rem;
+        
+        /* Border Radius */
+        --radius-sm: 0.375rem;
+        --radius-md: 0.5rem;
+        --radius-lg: 0.75rem;
+        --radius-xl: 1rem;
+        
+        /* Shadows */
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        
+        /* Transitions */
+        --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      /* Light theme */
+      [data-theme="light"] {
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8fafc;
+        --bg-tertiary: #e2e8f0;
+        --text-primary: #1e293b;
+        --text-secondary: #475569;
+        --text-muted: #64748b;
+      }
+
+      /* Global Styles */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
+
+      /* Scrollbar Styles */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--bg-secondary);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--accent-primary);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--accent-secondary);
+      }
+
+      /* Loading Screen */
+      .loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--bg-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity var(--transition-slow), visibility var(--transition-slow);
+      }
+
+      .loading-screen.hidden {
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      .loading-content {
+        text-align: center;
+      }
+
+      .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid var(--bg-tertiary);
+        border-top: 3px solid var(--accent-primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto var(--spacing-lg);
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      /* Navigation */
+      .navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: rgba(26, 26, 26, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--bg-tertiary);
+        z-index: 1000;
+        transition: all var(--transition-normal);
+      }
+
+      .nav-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--spacing-md) var(--spacing-xl);
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .nav-brand {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        font-weight: 700;
+        font-size: 1.25rem;
+        color: var(--accent-primary);
+      }
+
+      .nav-menu {
+        display: flex;
+        gap: var(--spacing-sm);
+      }
+
+      .nav-btn {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+        padding: var(--spacing-sm) var(--spacing-md);
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        font-size: 0.9rem;
+      }
+
+      .nav-btn:hover {
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+      }
+
+      .nav-btn.active {
+        background: var(--accent-primary);
+        color: white;
+      }
+
+      .theme-toggle {
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: var(--spacing-sm);
+        border-radius: var(--radius-md);
+        transition: all var(--transition-fast);
+      }
+
+      .theme-toggle:hover {
+        color: var(--accent-primary);
+      }
+
+      .hamburger-btn {
+          display: none; /* Hidden on desktop */
+          background: none;
+          border: none;
+          color: var(--text-secondary);
+          font-size: 1.2rem;
+          cursor: pointer;
+          padding: var(--spacing-sm);
+          border-radius: var(--radius-md);
+          transition: all var(--transition-fast);
+      }
+
+      .hamburger-btn:hover {
+          color: var(--accent-primary);
+      }
+
+      /* Sidenav and Overlay */
+      .sidenav {
+          height: 100%;
+          width: 280px;
+          position: fixed;
+          z-index: 1500;
+          top: 0;
+          left: -280px; /* Hidden off-screen */
+          background-color: var(--bg-primary);
+          overflow-x: hidden;
+          transition: left var(--transition-normal);
+          padding-top: 60px;
+          border-right: 1px solid var(--bg-secondary);
+          display: flex;
+          flex-direction: column;
+      }
+
+      .sidenav.open {
+          left: 0;
+          box-shadow: var(--shadow-xl);
+      }
+
+      .sidenav .nav-btn {
+          justify-content: flex-start;
+          border-radius: 0;
+          font-size: 1.1rem;
+          padding: var(--spacing-md) var(--spacing-lg);
+      }
+
+      .sidenav-close {
+          position: absolute;
+          top: 0;
+          right: 25px;
+          font-size: 36px;
+          color: var(--text-secondary);
+          text-decoration: none;
+      }
+      
+      .sidenav-close:hover {
+          color: var(--accent-danger);
+      }
+
+      .overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.7);
+          z-index: 1400;
+          opacity: 0;
+          visibility: hidden;
+          transition: opacity var(--transition-normal), visibility var(--transition-normal);
+      }
+
+      .overlay.show {
+          opacity: 1;
+          visibility: visible;
+      }
+
+      /* Main Container */
+      .main-container {
+        margin-top: 80px;
+        min-height: calc(100vh - 80px);
+      }
+
+      .view-section {
+        display: none;
+        padding: var(--spacing-xl);
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .view-section.active {
+        display: block;
+      }
+
+      /* Room View Styles */
+      .room-container {
+        position: relative;
+        height: 80vh;
+        min-height: 600px;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: var(--spacing-lg);
+        padding: var(--spacing-xl);
+      }
+
+      .room-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+      }
+
+      .room-zone {
+        position: relative;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: var(--radius-lg);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        cursor: pointer;
+        transition: all var(--transition-normal);
+        overflow: hidden;
+      }
+
+      .room-zone:hover {
+        transform: translateY(-5px);
+        border-color: var(--accent-primary);
+        box-shadow: var(--shadow-xl);
+      }
+
+      .zone-content {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+
+      .zone-label {
+        position: absolute;
+        bottom: var(--spacing-md);
+        left: var(--spacing-md);
+        right: var(--spacing-md);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(0, 0, 0, 0.7);
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--radius-md);
+        backdrop-filter: blur(10px);
+      }
+
+      .zone-count {
+        background: var(--accent-primary);
+        color: white;
+        padding: var(--spacing-xs) var(--spacing-sm);
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        min-width: 24px;
+        text-align: center;
+      }
+
+      /* Gaming Corner - Modern Console Setup */
+      .gaming-setup {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-md);
+        position: relative;
+      }
+
+      .modern-console {
+        width: 80px;
+        height: 45px;
+        background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%);
+        border-radius: var(--radius-lg);
+        position: relative;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      }
+
+      .modern-console::before {
+        content: '';
+        position: absolute;
+        top: 8px;
+        left: 12px;
+        width: 8px;
+        height: 8px;
+        background: #00ff41;
+        border-radius: 50%;
+        box-shadow: 0 0 12px #00ff41;
+        animation: consolePulse 2s ease-in-out infinite alternate;
+      }
+
+      .modern-console::after {
+        content: '';
+        position: absolute;
+        top: 8px;
+        right: 12px;
+        width: 20px;
+        height: 3px;
+        background: #333;
+        border-radius: 2px;
+        box-shadow: 0 8px 0 #333, 0 16px 0 #333;
+      }
+
+      .controller {
+        width: 70px;
+        height: 30px;
+        background: linear-gradient(135deg, #4a4a4a, #2a2a2a);
+        border-radius: 15px 15px 8px 8px;
+        position: relative;
+        margin-top: var(--spacing-sm);
+      }
+
+      .controller::before {
+        content: '';
+        position: absolute;
+        top: 8px;
+        left: 15px;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #6366f1;
+        box-shadow: 12px 0 0 #ef4444, 24px 0 0 #10b981, 36px 0 0 #f59e0b;
+      }
+
+      @keyframes consolePulse {
+        0% { opacity: 0.6; transform: scale(1); }
+        100% { opacity: 1; transform: scale(1.1); }
+      }
+
+      /* Cinema Area - Modern Projector */
+      .cinema-area .zone-content {
+        flex-direction: column;
+        align-items: center;
+        /* We will make the beam's height match this gap */
+        gap: 20px; 
+        position: relative;
+      }
+
+      .modern-projector {
+        width: 60px;
+        height: 40px;
+        position: relative; /* This is the positioning context for all children/pseudos */
+        /* Remove background and box-shadow from here */
+      }
+
+      .modern-projector::before {
+        content: '';
+        position: absolute;
+        inset: 0; /* A modern shortcut for top/right/bottom/left: 0 */
+        background: linear-gradient(135deg, #4a5568, #2d3748);
+        border-radius: 8px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        z-index: 2; /* Sits in the middle of our stack */
+      }
+
+      .modern-projector::after {
+        content: '';
+        position: absolute;
+        top: 12px;
+        left: 24px;
+        width: 12px;
+        height: 8px;
+        background: radial-gradient(circle, #ffffff, transparent);
+        border-radius: 50%;
+        animation: projectorBeam 3s ease-in-out infinite;
+        z-index: 3; /* The very top layer */
+      }
+
+      .projector-beam {
+        position: absolute;
+        top: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 0 40px 44px 40px;
+        border-color: transparent transparent rgba(255, 255, 255, 0.2) transparent;
+        filter: blur(2px);
+        animation: projectorBeam 3s ease-in-out infinite;
+        z-index: 1; /* Sits at the back, but above the page background */
+      }
+
+      .projection-screen {
+        width: 90px;
+        height: 55px;
+        background: linear-gradient(135deg, #1a1a2e, #16213e);
+        border: 3px solid #2a2a3e;
+        border-radius: 4px; /* Assuming var(--radius-sm) */
+        position: relative;
+        overflow: hidden;
+        /* margin-top: 10px; <--- REMOVE THIS */
+      }
+
+      .projection-screen::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        animation: screenFlicker 4s linear infinite;
+      }
+
+      @keyframes projectorBeam {
+        0%, 100% { opacity: 0.6; }
+        50% { opacity: 1; }
+      }
+
+      @keyframes screenFlicker {
+        0% { left: -100%; }
+        100% { left: 100%; }
+      }
+
+      /* TV Corner - Modern Smart TV */
+      .modern-tv {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-sm);
+      }
+
+      .smart-tv {
+        width: 85px;
+        height: 50px;
+        background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
+        border-radius: var(--radius-md);
+        border: 2px solid #333;
+        position: relative;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+      }
+
+      .smart-tv::before {
+        content: '';
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        right: 4px;
+        bottom: 4px;
+        background: linear-gradient(135deg, #06b6d4, #0891b2, #0e7490);
+        border-radius: var(--radius-sm);
+        animation: tvDisplay 6s ease-in-out infinite;
+      }
+
+      .smart-tv::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 20px;
+        height: 8px;
+        background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+        border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+      }
+
+      .tv-base {
+        width: 35px;
+        height: 8px;
+        background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+        border-radius: var(--radius-sm);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      @keyframes tvDisplay {
+        0%, 85%, 100% { 
+          background: linear-gradient(135deg, #06b6d4, #0891b2, #0e7490);
+          opacity: 1;
+        }
+        90% { 
+          background: repeating-linear-gradient(0deg, #fff 0px, #000 1px, #fff 2px);
+          opacity: 0.8;
+        }
+        95% {
+          background: linear-gradient(135deg, #06b6d4, #0891b2);
+          opacity: 0.9;
+        }
+      }
+
+      /* Library - Modern Bookshelf */
+      .modern-bookshelf {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
+        width: 90px;
+      }
+
+      .shelf-unit {
+        position: relative;
+        height: 25px;
+      }
+
+      .shelf-board {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(145deg, #8b4513, #654321);
+        border-radius: var(--radius-xs);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .book-collection {
+        position: absolute;
+        bottom: 3px;
+        left: 4px;
+        right: 4px;
+        height: 22px;
+        display: flex;
+        align-items: flex-end;
+        gap: 1px;
+      }
+
+      .book-display {
+        flex: 1;
+        border-radius: 1px 1px 0 0;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      }
+
+      .book-display:nth-child(1) { 
+        background: linear-gradient(180deg, #dc2626, #b91c1c); 
+        height: 18px; 
+      }
+      .book-display:nth-child(2) { 
+        background: linear-gradient(180deg, #16a34a, #15803d); 
+        height: 22px; 
+      }
+      .book-display:nth-child(3) { 
+        background: linear-gradient(180deg, #2563eb, #1d4ed8); 
+        height: 16px; 
+      }
+      .book-display:nth-child(4) { 
+        background: linear-gradient(180deg, #7c3aed, #6d28d9); 
+        height: 20px; 
+      }
+      .book-display:nth-child(5) { 
+        background: linear-gradient(180deg, #ea580c, #dc2626); 
+        height: 14px; 
+      }
+      .book-display:nth-child(6) { 
+        background: linear-gradient(180deg, #0891b2, #0e7490); 
+        height: 19px; 
+      }
+
+      .bookshelf-light {
+        position: absolute;
+        top: -5px;
+        right: 8px;
+        width: 12px;
+        height: 8px;
+        background: linear-gradient(180deg, #fbbf24, #f59e0b);
+        border-radius: 50% 50% 30% 30%;
+        box-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+        animation: bookshelfGlow 6s ease-in-out infinite;
+      }
+
+      @keyframes bookshelfGlow {
+        0%, 70%, 100% { opacity: 0.8; }
+        85% { opacity: 1; }
+      }
+      /* Research Desk - Academic Workspace */
+      .academic-workspace {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-sm);
+        position: relative;
+      }
+
+      .modern-desk {
+        width: 95px;
+        height: 55px;
+        background: linear-gradient(135deg, #92400e, #78350f);
+        border-radius: var(--radius-lg) var(--radius-lg) var(--radius-sm) var(--radius-sm);
+        position: relative;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      }
+
+      .research-papers {
+        position: absolute;
+        top: 8px;
+        left: 10px;
+        width: 25px;
+        height: 18px;
+        background: #f8fafc;
+        border-radius: var(--radius-xs);
+        box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+      }
+
+      .research-papers::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: 2px;
+        width: 25px;
+        height: 18px;
+        background: #e2e8f0;
+        border-radius: var(--radius-xs);
+        z-index: -1;
+      }
+
+      .research-papers::after {
+        content: '';
+        position: absolute;
+        top: -4px;
+        left: 4px;
+        width: 25px;
+        height: 18px;
+        background: #cbd5e1;
+        border-radius: var(--radius-xs);
+        z-index: -2;
+      }
+
+      .academic-lamp {
+        position: absolute;
+        top: 5px;
+        right: 15px;
+        width: 18px;
+        height: 35px;
+        background: linear-gradient(180deg, #fbbf24, #f59e0b);
+        border-radius: 50% 50% 20% 20%;
+        box-shadow: 0 0 20px rgba(251, 191, 36, 0.6);
+        animation: lampGlow 3s ease-in-out infinite alternate;
+      }
+
+      .academic-lamp::before {
+        content: '';
+        position: absolute;
+        bottom: -5px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 12px;
+        height: 8px;
+        background: #374151;
+        border-radius: var(--radius-sm);
+      }
+
+      .pen-holder {
+        position: absolute;
+        top: 12px;
+        right: 40px;
+        width: 8px;
+        height: 12px;
+        background: #374151;
+        border-radius: var(--radius-xs);
+      }
+
+      .pen-holder::after {
+        content: '';
+        position: absolute;
+        top: -3px;
+        left: 1px;
+        width: 2px;
+        height: 15px;
+        background: #2563eb;
+        border-radius: 1px;
+        box-shadow: 3px 0 0 #dc2626;
+      }
+
+      @keyframes lampGlow {
+        0% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.4); }
+        100% { box-shadow: 0 0 30px rgba(251, 191, 36, 0.8); }
+      }
+
+      /* Timeline Styles */
+      .timeline-header {
+        margin-bottom: var(--spacing-xl);
+      }
+
+      .timeline-header h2 {
+        margin-bottom: var(--spacing-lg);
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .timeline-filters {
+        display: flex;
+        gap: var(--spacing-lg);
+        flex-wrap: wrap;
+      }
+
+      .filter-group {
+        display: flex;
+        gap: var(--spacing-sm);
+      }
+
+      .filter-btn, .type-filter {
+        padding: var(--spacing-sm) var(--spacing-md);
+        border: 1px solid var(--bg-tertiary);
+        background: var(--bg-secondary);
+        color: var(--text-secondary);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        font-size: 0.9rem;
+      }
+
+      .filter-btn:hover, .type-filter:hover {
+        border-color: var(--accent-primary);
+        color: var(--text-primary);
+      }
+
+      .filter-btn.active, .type-filter.active {
+        background: var(--accent-primary);
+        border-color: var(--accent-primary);
+        color: white;
+      }
+
+      .timeline-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: var(--spacing-xl);
+      }
+
+      .modal-info strong { color: var(--text-primary); }
+
+      .modal-meta { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+      
+      /* New styles for note editing */
+      .modal-section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-sm);
+        border-bottom: 1px solid var(--bg-tertiary);
+        padding-bottom: var(--spacing-sm);
+      }
+      .modal-section-header h4 {
+        margin: 0;
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+      .btn-icon {
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        cursor: pointer;
+        padding: var(--spacing-xs);
+        border-radius: var(--radius-md);
+        transition: all var(--transition-fast);
+      }
+      .btn-icon:hover {
+        color: var(--accent-primary);
+        background: var(--bg-tertiary);
+      }
+      #modalNotesTextarea {
+        width: 100%;
+        min-height: 100px;
+        resize: vertical;
+      }
+      #modalNotesActions {
+        display: flex;
+        gap: var(--spacing-sm);
+        justify-content: flex-end;
+        margin-top: var(--spacing-md);
+      }
+      
+      @media (max-width: 600px) { .modal-grid { grid-template-columns: 1fr; } .modal-cover img { max-width: 200px; margin: 0 auto; } }
+
+      /* Media Cards */
+      .media-card {
+        background: var(--bg-secondary);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+        transition: all var(--transition-normal);
+        cursor: pointer;
+        position: relative;
+        display: flex; /* Add this */
+        flex-direction: column; /* Add this */
+      }
+
+      .media-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-xl);
+      }
+
+      .card-cover {
+        position: relative;
+        height: 180px;
+        overflow: hidden;
+        border-bottom: 1px solid var(--bg-tertiary);
+        background-color: var(--bg-tertiary); /* Add this line */
+      }
+
+      .cover-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform var(--transition-slow);
+      }
+
+      .media-card:hover .cover-image {
+        transform: scale(1.05);
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+        margin-bottom: var(--spacing-sm);
+      }
+      
+      .card-finish-btn {
+        background: var(--bg-tertiary);
+        color: var(--text-secondary);
+        border: 1px solid transparent;
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+      }
+      
+      .card-finish-btn:hover {
+        background: var(--accent-success);
+        border-color: var(--accent-success);
+        color: white;
+        transform: scale(1.1);
+      }
+
+      .card-finish-btn:active {
+        transform: scale(0.95);
+        background: #059669; /* A darker shade for the pressed state */
+      }
+      
+      .card-title {
+        margin-bottom: 0; /* Let flexbox handle spacing */
+        flex-grow: 1;
+      }
+
+      .progress-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity var(--transition-normal);
+      }
+
+      .progress-overlay.show {
+        opacity: 1;
+      }
+
+      .finish-btn {
+        background: var(--accent-success);
+        color: white;
+        border: none;
+        padding: var(--spacing-sm) var(--spacing-lg);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        font-weight: 600;
+        transition: all var(--transition-fast);
+      }
+
+      .finish-btn:hover {
+        background: #059669;
+        transform: scale(1.05);
+      }
+
+      .card-content {
+        padding: var(--spacing-lg);
+        display: flex; /* Add this */
+        flex-direction: column; /* Add this */
+        flex-grow: 1; /* Add this - THIS IS THE KEY! */
+      }
+
+      .card-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: var(--spacing-sm);
+        line-height: 1.3;
+      }
+
+      .card-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: var(--spacing-md);
+        margin-top: auto; /* Add this */
+      }
+
+      .type-badge {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        border-radius: var(--radius-sm);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .type-badge.videogame { background: #3b82f6; color: white; }
+      .type-badge.film { background: #ef4444; color: white; }
+      .type-badge.series { background: #06b6d4; color: white; }
+      .type-badge.book { background: #8b5cf6; color: white; }
+      .type-badge.paper { background: #10b981; color: white; }
+
+      .rating {
+        color: #fbbf24;
+        font-size: 1.1rem;
+      }
+
+      .card-dates {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-bottom: var(--spacing-sm);
+      }
+
+      .card-notes {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .card-author {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-bottom: var(--spacing-md);
+        font-style: italic;
+      }
+
+      .notes-indicator {
+        color: var(--accent-warning);
+        font-size: 0.85rem;
+        margin-right: var(--spacing-sm);
+        margin-left: var(--spacing-sm);
+        opacity: 0.8;
+        vertical-align: middle;
+        transition: opacity var(--transition-fast);
+      }
+      .notes-indicator:hover {
+        opacity: 1;
+      }
+
+      /* Status indicators */
+      .media-card[data-status="in-progress"] {
+        border-left: 4px solid var(--accent-warning);
+      }
+
+      .media-card[data-status="completed"] {
+        border-left: 4px solid var(--accent-success);
+      }
+
+      .media-card[data-status="in-progress"]::before {
+        content: '';
+        position: absolute;
+        top: var(--spacing-sm);
+        right: var(--spacing-sm);
+        width: 12px;
+        height: 12px;
+        background: var(--accent-warning);
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+      }
+
+      /* Status indicators - add this new rule */
+      .media-card[data-status="unknown-dates"] {
+        border-left: 4px solid var(--text-muted);
+      }
+
+      .media-card[data-status="unknown-dates"]::before {
+        content: '';
+        position: absolute;
+        top: var(--spacing-sm);
+        right: var(--spacing-sm);
+        width: 12px;
+        height: 12px;
+        background: var(--text-muted);
+        border-radius: 50%;
+      }
+
+      @keyframes pulse {
+        0%, 100% { 
+          opacity: 1; 
+          transform: scale(1);
+        }
+        50% { 
+          opacity: 0.7; 
+          transform: scale(1.1);
+        }
+      }
+
+      /* Statistics Styles */
+      .stats-container {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-2xl);
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: var(--spacing-lg);
+      }
+
+      .stat-card {
+        background: var(--bg-secondary);
+        padding: var(--spacing-xl);
+        border-radius: var(--radius-lg);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-lg);
+        box-shadow: var(--shadow-md);
+        transition: transform var(--transition-fast);
+      }
+
+      .stat-card:hover {
+        transform: translateY(-2px);
+      }
+
+      .stat-icon {
+        font-size: 2rem;
+        color: var(--accent-primary);
+      }
+
+      .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+
+      .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+      }
+
+      .charts-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--spacing-xl);
+      }
+
+      .chart-card {
+        background: var(--bg-secondary);
+        padding: var(--spacing-xl);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+      }
+
+      .chart-card h3 {
+        margin-bottom: var(--spacing-lg);
+        color: var(--text-primary);
+      }
+
+      .activity-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
+      }
+
+      .activity-item {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md);
+        background: var(--bg-tertiary);
+        border-radius: var(--radius-md);
+        transition: background-color var(--transition-fast);
+      }
+
+      .activity-item:hover {
+        background: var(--bg-primary);
+      }
+
+      .activity-icon {
+        font-size: 1.5rem;
+      }
+
+      .activity-content {
+        flex: 1;
+      }
+
+      .activity-title {
+        font-weight: 600;
+        margin-bottom: var(--spacing-xs);
+      }
+
+      .activity-meta {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+      }
+
+      /* Form Styles */
+      .add-header h2 {
+        margin-bottom: var(--spacing-xl);
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .modern-form {
+        background: var(--bg-secondary);
+        padding: var(--spacing-2xl);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-lg);
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--spacing-lg);
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        margin-bottom: var(--spacing-lg);
+      }
+
+      .form-group label {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        background: var(--bg-primary);
+        border: 2px solid var(--bg-tertiary);
+        color: var(--text-primary);
+        padding: var(--spacing-md);
+        border-radius: var(--radius-md);
+        font-size: 1rem;
+        transition: all var(--transition-fast);
+        width: 100%;
+      }
+
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+      }
+
+      .form-group small {
+        color: var(--text-muted);
+        font-size: 0.8rem;
+      }
+
+      .rating-container {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+      }
+
+      .rating-container input[type="range"] {
+        flex: 1;
+        height: 6px;
+        background: var(--bg-tertiary);
+        border-radius: 3px;
+        outline: none;
+        -webkit-appearance: none;
+      }
+
+      .rating-container input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--accent-primary);
+        cursor: pointer;
+        box-shadow: var(--shadow-md);
+      }
+
+      .rating-container input[type="range"]::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--accent-primary);
+        cursor: pointer;
+        border: none;
+        box-shadow: var(--shadow-md);
+      }
+
+      .rating-value {
+        background: var(--accent-primary);
+        color: white;
+        padding: var(--spacing-sm);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        min-width: 40px;
+        text-align: center;
+      }
+
+      .rating-stars {
+        display: flex;
+        gap: var(--spacing-xs);
+        margin-top: var(--spacing-sm);
+      }
+
+      .rating-stars .star {
+        color: #fbbf24;
+        font-size: 1.2rem;
+        transition: transform var(--transition-fast);
+      }
+
+      .rating-stars .star.empty {
+        color: var(--text-muted);
+      }
+
+      /* Hides rating on the "Add" form by default */
+      #ratingSection {
+        display: none;
+      }
+
+      .form-actions {
+        display: flex;
+        gap: var(--spacing-md);
+        justify-content: flex-end;
+        margin-top: var(--spacing-xl);
+      }
+
+      .btn-primary,
+      .btn-secondary,
+      .btn-danger {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-xl);
+        border: none;
+        border-radius: var(--radius-md);
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+      }
+
+      .btn-primary {
+        background: var(--accent-primary);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #5a67d8;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+      }
+
+      .btn-secondary {
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+      }
+
+      .btn-secondary:hover {
+        background: var(--bg-primary);
+        transform: translateY(-1px);
+      }
+
+      .btn-danger {
+        background: var(--accent-danger);
+        color: white;
+      }
+
+      .btn-danger:hover {
+        background: #dc2626;
+        transform: translateY(-1px);
+      }
+
+      .form-feedback {
+        margin-top: var(--spacing-lg);
+        padding: var(--spacing-md);
+        border-radius: var(--radius-md);
+        text-align: center;
+        font-weight: 600;
+      }
+
+      .form-feedback.success {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid var(--accent-success);
+        color: var(--accent-success);
+      }
+
+      .form-feedback.error {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid var(--accent-danger);
+        color: var(--accent-danger);
+      }
+
+      /* Modal Styles */
+      .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all var(--transition-normal);
+      }
+
+      .modal.show {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .modal-content {
+        background: var(--bg-secondary);
+        border-radius: var(--radius-xl);
+        max-width: 600px;
+        max-height: none;
+        width: 90%;
+        overflow: hidden;
+        box-shadow: var(--shadow-xl);
+        transform: scale(0.9);
+        transition: transform var(--transition-normal);
+      }
+
+      .modal.show .modal-content {
+        transform: scale(1);
+      }
+
+      .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--spacing-xl);
+        border-bottom: 1px solid var(--bg-tertiary);
+      }
+
+      .modal-header h3 {
+        margin: 0;
+        color: var(--text-primary);
+      }
+
+      .modal-close {
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: var(--spacing-sm);
+        border-radius: var(--radius-md);
+        transition: all var(--transition-fast);
+      }
+
+      .modal-close:hover {
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+      }
+
+      .modal-body {
+        padding: var(--spacing-xl);
+        max-height: 60vh;
+        overflow-y: auto;
+      }
+
+      .modal-footer {
+        display: flex;
+        gap: var(--spacing-md);
+        justify-content: flex-end;
+        padding: var(--spacing-xl);
+        border-top: 1px solid var(--bg-tertiary);
+      }
+
+      /* In-place Editing styles for Modal */
+      .modal-content .edit-mode {
+        display: none;
+      }
+      .modal-content.is-editing .view-mode {
+        display: none;
+      }
+      .modal-content.is-editing .edit-mode {
+        display: block;
+      }
+      .modal-content.is-editing .form-group {
+        margin-bottom: var(--spacing-lg);
+      }
+      .modal-content.is-editing .form-row {
+         display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--spacing-lg);
+      }
+      .modal-content.is-editing .edit-section-pending,
+      .modal-content.is-editing .edit-section-active {
+          display: block;
+      }
+
+      .modal-content.is-editing .modal-cover {
+        display: none;
+      }
+
+      /* Toast Notifications */
+      .toast-container {
+        position: fixed;
+        top: 100px;
+        right: var(--spacing-xl);
+        z-index: 3000;
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
+      }
+
+      .toast {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        padding: var(--spacing-lg);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        min-width: 300px;
+        transform: translateX(100%);
+        transition: transform var(--transition-normal);
+        border-left: 4px solid var(--accent-primary);
+      }
+
+      .toast.show {
+        transform: translateX(0);
+      }
+
+      .toast.success {
+        border-left-color: var(--accent-success);
+      }
+
+      .toast.error {
+        border-left-color: var(--accent-danger);
+      }
+
+      .toast.warning {
+        border-left-color: var(--accent-warning);
+      }
+
+      /* Animations */
+      .fade-in {
+        animation: fadeIn 0.5s ease-out;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .slide-up {
+        animation: slideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(50px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .completion-animation {
+        animation: celebrate 0.6s ease-out;
+      }
+
+      @keyframes celebrate {
+        0% { 
+          transform: scale(1); 
+        }
+        25% { 
+          transform: scale(1.05) rotate(1deg); 
+        }
+        50% { 
+          transform: scale(1.1) rotate(-1deg); 
+        }
+        75% { 
+          transform: scale(1.05) rotate(1deg); 
+        }
+        100% { 
+          transform: scale(1); 
+        }
+      }
+
+      /* Responsive Design */
+      @media (max-width: 1200px) {
+        .charts-container {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .nav-container {
+          padding: var(--spacing-sm) var(--spacing-md);
+        }
+        
+        .nav-menu {
+          display: none;
+        }
+
+        .hamburger-btn {
+            display: block; /* Show hamburger on mobile */
+        }
+        
+        .view-section {
+          padding: var(--spacing-md);
+        }
+        
+        .room-container {
+          grid-template-columns: 1fr 1fr;
+          grid-template-rows: repeat(3, 1fr);
+          height: auto;
+          min-height: 500px;
+        }
+        
+        .timeline-container {
+          grid-template-columns: 1fr;
+        }
+        
+        .stats-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .form-row {
+          grid-template-columns: 1fr;
+        }
+        
+        .timeline-filters {
+          flex-direction: column;
+        }
+        
+        .modal-content {
+          width: 95%;
+          margin: var(--spacing-md);
+        }
+      }
+
+      @media (max-width: 480px) {
+        .nav-brand span {
+          display: none;
+        }
+        
+        .stats-grid {
+          grid-template-columns: 1fr;
+        }
+        
+        .room-container {
+          grid-template-columns: 1fr;
+          grid-template-rows: repeat(5, 1fr);
+        }
+        
+        .zone-label {
+          flex-direction: column;
+          text-align: center;
+          gap: var(--spacing-xs);
+          z-index: 4
+        }
+      }
+
+      /* Dark/Light theme specific adjustments */
+      [data-theme="light"] .room-container {
+        background: linear-gradient(135deg, #e0f2fe 0%, #b3e5fc 50%, #81d4fa 100%);
+      }
+
+      [data-theme="light"] .room-zone {
+        background: rgba(0, 0, 0, 0.05);
+        border-color: rgba(0, 0, 0, 0.1);
+      }
+
+      [data-theme="light"] .zone-label {
+        background: rgba(255, 255, 255, 0.9);
+        color: var(--text-primary);
+      }
+
+      /* Print styles */
+      @media print {
+        .navbar,
+        .nav-container,
+        .form-actions,
+        .modal,
+        .toast-container {
+          display: none !important;
+        }
+        
+        .main-container {
+          margin-top: 0;
+        }
+        
+        .view-section {
+          display: block !important;
+          padding: 1rem;
+        }
+        
+        .media-card {
+          break-inside: avoid;
+          margin-bottom: 1rem;
+        }
+      }
+
+      /* Search Container Styles */
+      .search-container {
+        position: relative;
+        margin-bottom: var(--spacing-lg);
+        max-width: 400px;
+      }
+
+      .search-input {
+        width: 100%;
+        padding: var(--spacing-md) var(--spacing-xl) var(--spacing-md) var(--spacing-md);
+        background: var(--bg-secondary);
+        border: 2px solid var(--bg-tertiary);
+        color: var(--text-primary);
+        border-radius: var(--radius-md);
+        font-size: 1rem;
+        transition: all var(--transition-fast);
+      }
+
+      .search-input:focus {
+        outline: none;
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+      }
+
+      .search-icon {
+        position: absolute;
+        right: var(--spacing-md);
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        pointer-events: none;
+      }
+
+      /* Pending Card Styles */
+      .pending-card {
+        background: var(--bg-secondary);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+        transition: all var(--transition-normal);
+        cursor: pointer;
+        position: relative;
+        border-left: 4px solid var(--accent-warning);
+      }
+
+      .pending-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-xl);
+      }
+
+      .pending-card .card-content {
+        padding: var(--spacing-lg);
+      }
+
+      .pending-header {
+        margin-bottom: var(--spacing-xl);
+      }
+
+      .pending-header h2 {
+        margin-bottom: var(--spacing-lg);
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .pending-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: var(--spacing-sm);
+      }
+
+      .start-btn {
+        background: var(--accent-success);
+        color: white;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+      }
+
+      .start-btn:hover {
+        background: #059669;
+        transform: scale(1.1);
+      }
+
+      .hype-rating {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+        margin-top: var(--spacing-sm);
+        color: var(--accent-warning);
+        font-weight: 600;
+      }
+
+      .tags-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--spacing-xs);
+        margin-top: var(--spacing-sm);
+      }
+
+      .tag {
+        background: var(--bg-tertiary);
+        color: var(--text-secondary);
+        padding: var(--spacing-xs) var(--spacing-sm);
+        border-radius: var(--radius-sm);
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+
+      /* Form styles for pending entries */
+      .pending-form {
+        background: var(--bg-secondary);
+        padding: var(--spacing-2xl);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-lg);
+        max-width: 600px;
+        margin: 0 auto;
+        margin-bottom: var(--spacing-xl);
+      }
+
+      .form-tabs {
+        display: flex;
+        margin-bottom: var(--spacing-xl);
+        border-bottom: 1px solid var(--bg-tertiary);
+      }
+
+      .form-tab {
+        padding: var(--spacing-md) var(--spacing-lg);
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        border-bottom: 2px solid transparent;
+      }
+
+      .form-tab.active {
+        color: var(--accent-primary);
+        border-bottom-color: var(--accent-primary);
+      }
+
+      .form-tab:hover {
+        color: var(--text-primary);
+      }
+
+      /* High contrast mode */
+      @media (prefers-contrast: high) {
+        :root {
+          --bg-primary: #000000;
+          --bg-secondary: #1a1a1a;
+          --text-primary: #ffffff;
+          --accent-primary: #0066ff;
+        }
+      }
+
+            /* Custom styles for date input - CORREGIDO */
+      .date-input-wrapper {
+        position: relative;
+      }
+
+      /* Coloca nuestro icono de Font Awesome encima del input */
+      .date-input-wrapper::after {
+        content: '\f073'; /* Código del icono de calendario de Font Awesome */
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        position: absolute;
+        top: 50%;
+        right: 15px;
+        transform: translateY(-50%);
+        color: var(--text-muted); /* Usa el color de tu tema */
+        pointer-events: none; /* Permite que los clics "atraviesen" el icono y lleguen al input */
+      }
+      
+      /* Asegura que el texto de la fecha sea visible */
+      input[type="date"] {
+        color: var(--text-primary);
+        /* Para Firefox, necesitamos un enfoque diferente (aunque su icono suele adaptarse mejor) */
+        -moz-appearance: textfield;
+      }
+      
+      /* Asegura que el texto del placeholder (dd/mm/yyyy) sea visible */
+      input[type="date"]::-webkit-datetime-edit-text {
+        color: var(--text-secondary);
+      }
+
+      /* Oculta el icono de calendario por defecto en navegadores WebKit (Chrome, Safari, Edge) */
+      input[type="date"]::-webkit-calendar-picker-indicator {
+        opacity: 0;
+        cursor: pointer;
+        /* La línea "width: 100%;" ha sido eliminada para no tapar el texto */
+      }
+      
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h2>Loading Your Multimedia Diary...</h2>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+      <div class="nav-container">
+          <div class="nav-brand">
+              <i class="fas fa-book-open"></i>
+              <span>My Multimedia Diary</span>
+          </div>
+          <div class="nav-menu">
+            <button class="nav-btn active" data-view="room">
+                <i class="fas fa-home"></i>
+                <span>Room</span>
+            </button>
+            <button class="nav-btn" data-view="pending">
+                <i class="fas fa-clock"></i>
+                <span>Pending</span>
+            </button>
+            <button class="nav-btn" data-view="overview">
+                <i class="fas fa-list"></i>
+                <span>Overview</span>
+            </button>
+            <button class="nav-btn" data-view="stats">
+                <i class="fas fa-chart-bar"></i>
+                <span>Stats</span>
+            </button>
+            <button class="nav-btn" data-view="add">
+                <i class="fas fa-plus"></i>
+                <span>Add</span>
+            </button>
+        </div>
+            <div class="nav-actions">
+              <button class="hamburger-btn" onclick="openSidenav()">
+                  <i class="fas fa-bars"></i>
+              </button>
+              <button class="theme-toggle" onclick="toggleTheme()">
+                  <i class="fas fa-sun"></i>
+              </button>
+          </div>
+      </div>
+    </nav>
+
+    <!-- Sidenav and Overlay -->
+    <div id="sidenav" class="sidenav">
+      <a href="javascript:void(0)" class="sidenav-close" onclick="closeSidenav()">&times;</a>
+      <button class="nav-btn active" data-view="room">
+          <i class="fas fa-home"></i>
+          <span>Room</span>
+      </button>
+      <button class="nav-btn" data-view="pending">
+          <i class="fas fa-clock"></i>
+          <span>Pending</span>
+      </button>
+      <button class="nav-btn" data-view="overview">
+          <i class="fas fa-list"></i>
+          <span>Overview</span>
+      </button>
+      <button class="nav-btn" data-view="stats">
+          <i class="fas fa-chart-bar"></i>
+          <span>Stats</span>
+      </button>
+      <button class="nav-btn" data-view="add">
+          <i class="fas fa-plus"></i>
+          <span>Add</span>
+      </button>
+  </div>
+    <div id="overlay" class="overlay" onclick="closeSidenav()"></div>
+
+    <!-- Main Content Container -->
+    <main class="main-container">
+        <!-- Room View -->
+        <section id="roomView" class="view-section active">
+            <div class="room-container">
+                <div class="room-background"></div>
+                
+                <!-- Gaming Corner -->
+                <div class="room-zone gaming-corner" data-type="videogame">
+                    <div class="zone-content">
+                      <div class="gaming-setup">
+                        <div class="modern-console"></div>
+                        <div class="controller"></div>
+                      </div>
+                      <div class="zone-label">
+                        <i class="fas fa-gamepad"></i>
+                        <span>Video Games</span>
+                        <div class="zone-count" data-type="videogame">0</div>
+                      </div>
+                    </div>
+                </div>
+
+                <!-- Cinema Area -->
+                <div class="room-zone cinema-area" data-type="film">
+                    <div class="zone-content">
+                      <div class="modern-projector">
+                        <div class="projector-beam"></div>
+                      </div>
+                      <div class="projection-screen"></div>
+                      <div class="zone-label">
+                        <i class="fas fa-film"></i>
+                        <span>Films</span>
+                        <div class="zone-count" data-type="film">0</div>
+                      </div>
+                    </div>
+                </div>
+
+                <!-- TV Corner -->
+                <div class="room-zone tv-corner" data-type="series">
+                    <div class="zone-content">
+                      <div class="modern-tv">
+                        <div class="smart-tv"></div>
+                        <div class="tv-base"></div>
+                      </div>
+                      <div class="zone-label">
+                        <i class="fas fa-tv"></i>
+                        <span>TV Series</span>
+                        <div class="zone-count" data-type="series">0</div>
+                      </div>
+                    </div>
+                </div>
+
+                <!-- Library -->
+                <div class="room-zone library" data-type="book">
+                    <div class="zone-content">
+                      <div class="modern-bookshelf">
+                        <div class="shelf-unit">
+                          <div class="shelf-board"></div>
+                          <div class="book-collection">
+                            <div class="book-display"></div>
+                            <div class="book-display"></div>
+                            <div class="book-display"></div>
+                            <div class="book-display"></div>
+                            <div class="book-display"></div>
+                            <div class="book-display"></div>
+                          </div>
+                        </div>
+                        <div class="shelf-unit">
+                          <div class="shelf-board"></div>
+                          <div class="book-collection">
+                            <div class="book-display"></div>
+                            <div class="book-display"></div>
+                            <div class="book-display"></div>
+                            <div class="book-display"></div>
+                            <div class="book-display"></div>
+                            <div class="book-display"></div>
+                          </div>
+                        </div>
+                        <div class="bookshelf-light"></div>
+                        </div>
+                      <div class="zone-label">
+                        <i class="fas fa-book"></i>
+                        <span>Books</span>
+                        <div class="zone-count" data-type="book">0</div>
+                      </div>
+                    </div>
+                </div>
+
+                <!-- Research Desk -->
+                <div class="room-zone research-desk" data-type="paper">
+                    <div class="zone-content">
+                      <div class="academic-workspace">
+                        <div class="modern-desk">
+                          <div class="research-papers"></div>
+                          <div class="academic-lamp"></div>
+                          <div class="pen-holder"></div>
+                        </div>
+                      </div>
+                      <div class="zone-label">
+                        <i class="fas fa-scroll"></i>
+                        <span>Papers</span>
+                        <div class="zone-count" data-type="paper">0</div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pending View -->
+        <section id="pendingView" class="view-section">
+            <div class="pending-header">
+                <h2>Pending Content</h2>
+                <div class="search-container">
+                    <input type="text" id="pendingSearch" placeholder="Search pending items..." class="search-input">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+                <div class="pending-filters">
+                    <div class="filter-group">
+                        <button class="type-filter active" data-type="all">All Types</button>
+                        <button class="type-filter" data-type="videogame">Games</button>
+                        <button class="type-filter" data-type="film">Films</button>
+                        <button class="type-filter" data-type="series">Series</button>
+                        <button class="type-filter" data-type="book">Books</button>
+                        <button class="type-filter" data-type="paper">Papers</button>
+                    </div>
+                </div>
+            </div>
+            <div id="pendingContainer" class="timeline-container">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+        </section>
+
+        <!-- Overview View (formerly Timeline) -->
+        <section id="overviewView" class="view-section">
+            <div class="timeline-header">
+                <h2>Your Media Overview</h2>
+                <div class="search-container">
+                    <input type="text" id="overviewSearch" placeholder="Search your collection..." class="search-input">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+                <div class="timeline-filters">
+                    <div class="filter-group">
+                        <button class="filter-btn active" data-filter="all">All</button>
+                        <button class="filter-btn" data-filter="in-progress">In Progress</button>
+                        <button class="filter-btn" data-filter="completed">Completed</button>
+                    </div>
+                    <div class="filter-group">
+                        <button class="type-filter active" data-type="all">All Types</button>
+                        <button class="type-filter" data-type="videogame">Games</button>
+                        <button class="type-filter" data-type="film">Films</button>
+                        <button class="type-filter" data-type="series">Series</button>
+                        <button class="type-filter" data-type="book">Books</button>
+                        <button class="type-filter" data-type="paper">Papers</button>
+                    </div>
+                </div>
+            </div>
+            <div id="overviewContainer" class="timeline-container">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+        </section>
+
+        <!-- Statistics View -->
+        <section id="statsView" class="view-section">
+            <div class="stats-header">
+                <h2>Your Media Statistics</h2>
+            </div>
+            <div class="stats-container">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="totalEntries">0</div>
+                            <div class="stat-label">Total Entries</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-play"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="inProgressCount">0</div>
+                            <div class="stat-label">In Progress</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="completedCount">0</div>
+                            <div class="stat-label">Completed</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="averageRating">0</div>
+                            <div class="stat-label">Avg Rating</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="charts-container">
+                    <div class="chart-card">
+                        <h3>Content Distribution</h3>
+                        <canvas id="typeChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Recent Activity</h3>
+                        <div id="recentActivity" class="activity-list">
+                            <!-- Dynamic content -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Add Entry View -->
+        <section id="addView" class="view-section">
+            <div class="add-header">
+                <h2>Add New Entry</h2>
+            </div>
+            <div class="add-container">
+                <div class="form-tabs">
+                    <button class="form-tab active" data-form="direct" onclick="switchFormTab('direct')">
+                        <i class="fas fa-plus"></i> Add Started Item
+                    </button>
+                    <button class="form-tab" data-form="pending" onclick="switchFormTab('pending')">
+                        <i class="fas fa-clock"></i> Add to Pending
+                    </button>
+                </div>
+
+                <form id="addEntryForm" class="modern-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="title">
+                                <i class="fas fa-heading"></i>
+                                Title *
+                            </label>
+                            <input type="text" id="title" required placeholder="Enter title...">
+                        </div>
+                        <div class="form-group">
+                            <label for="type">
+                                <i class="fas fa-tags"></i>
+                                Type *
+                            </label>
+                            <select id="type" required>
+                                <option value="">Select type...</option>
+                                <option value="videogame">🎮 Video Game</option>
+                                <option value="film">🎬 Film</option>
+                                <option value="series">📺 TV Series</option>
+                                <option value="book">📚 Book</option>
+                                <option value="paper">📄 Scientific Paper</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="authorSection" style="display: none;">
+                        <label for="author">
+                            <i class="fas fa-user-edit"></i>
+                            Author
+                        </label>
+                        <input type="text" id="author" placeholder="e.g., J.R.R. Tolkien">
+                      </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                          <label for="startDate">
+                              <i class="fas fa-play"></i>
+                              Start Date
+                          </label>
+                          <!-- Añade este div wrapper -->
+                          <div class="date-input-wrapper">
+                              <input type="date" id="startDate">
+                          </div>
+                      </div>
+                      <div class="form-group">
+                          <label for="finishDate">
+                              <i class="fas fa-flag-checkered"></i>
+                              Finish Date
+                          </label>
+                          <!-- Añade este div wrapper -->
+                          <div class="date-input-wrapper">
+                              <input type="date" id="finishDate">
+                          </div>
+                          <small>Leave empty if currently in progress</small>
+                      </div>
+                    </div>
+                    
+                    <div class="form-group" id="ratingSection">
+                      <label for="rating">
+                          <i class="fas fa-star"></i>
+                          Rating (0 for N/A) <!-- Changed label -->
+                      </label>
+                      <div class="rating-container">
+                          <input type="range" id="rating" min="0" max="10" value="5"> <!-- Changed min="0" -->
+                          <span id="ratingValue" class="rating-value">5</span>
+                      </div>
+                      <div class="rating-stars" id="ratingStars">
+                          <!-- Dynamic stars -->
+                      </div>
+                  </div>
+                    
+                    <div class="form-group">
+                        <label for="notes">
+                            <i class="fas fa-sticky-note"></i>
+                            Notes
+                        </label>
+                        <textarea id="notes" rows="4" placeholder="Your thoughts, review, or notes..."></textarea>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="resetForm()">
+                            <i class="fas fa-undo"></i>
+                            Reset
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Add Entry
+                        </button>
+                    </div>
+                </form>
+
+                <form id="addPendingForm" class="pending-form" style="display: none;">
+                  <div class="form-row">
+                      <div class="form-group">
+                          <label for="pendingTitle">
+                              <i class="fas fa-heading"></i>
+                              Title *
+                          </label>
+                          <input type="text" id="pendingTitle" required placeholder="Enter title...">
+                      </div>
+                      <div class="form-group">
+                          <label for="pendingType">
+                              <i class="fas fa-tags"></i>
+                              Type *
+                          </label>
+                          <select id="pendingType" required>
+                              <option value="">Select type...</option>
+                              <option value="videogame">🎮 Video Game</option>
+                              <option value="film">🎬 Film</option>
+                              <option value="series">📺 TV Series</option>
+                              <option value="book">📚 Book</option>
+                              <option value="paper">📄 Scientific Paper</option>
+                          </select>
+                      </div>
+                  </div>
+                  
+                  <div class="form-row">
+                      <div class="form-group">
+                          <label for="pendingTags">
+                              <i class="fas fa-tag"></i>
+                              Tags
+                          </label>
+                          <input type="text" id="pendingTags" placeholder="sci-fi, thriller, recommended (comma separated)">
+                          <small>Use commas to separate multiple tags</small>
+                      </div>
+                      <div class="form-group">
+                          <label for="pendingHype">
+                              <i class="fas fa-fire"></i>
+                              Hype Rating (1-10)
+                          </label>
+                          <div class="rating-container">
+                              <input type="range" id="pendingHype" min="1" max="10" value="7">
+                              <span id="pendingHypeValue" class="rating-value">7</span>
+                          </div>
+                      </div>
+                  </div>
+                  
+                  <div class="form-group">
+                      <label for="pendingNotes">
+                          <i class="fas fa-sticky-note"></i>
+                          Notes
+                      </label>
+                      <textarea id="pendingNotes" rows="3" placeholder="Why do you want to check this out?"></textarea>
+                  </div>
+                  
+                  <div class="form-actions">
+                      <button type="button" class="btn-secondary" onclick="resetPendingForm()">
+                          <i class="fas fa-undo"></i>
+                          Reset
+                      </button>
+                      <button type="submit" class="btn-primary">
+                          <i class="fas fa-clock"></i>
+                          Add to Pending
+                      </button>
+                  </div>
+              </form>
+                
+                <div id="formFeedback" class="form-feedback"></div>
+            </div>
+        </section>
+    </main>
+
+      <!-- Entry Detail Modal -->
+    <div id="entryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="view-mode" id="modalTitle">Entry Details</h3>
+                <h3 class="edit-mode">Edit Entry</h3>
+                <button class="modal-close" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="modalEditForm" onsubmit="saveEntryChanges(event)">
+                <div class="modal-body" id="modalBody">
+                    <!-- Dynamic content will be generated by JS -->
+                </div>
+                <div class="modal-footer">
+                    <!-- View Mode Buttons -->
+                    <button type="button" class="btn-secondary view-mode" onclick="closeModal()">Close</button>
+                    <button type="button" class="btn-primary view-mode" onclick="toggleEntryEdit(true)"><i class="fas fa-edit"></i> Edit</button>
+                    <button type="button" class="btn-danger view-mode" onclick="deleteCurrentEntry()"><i class="fas fa-trash"></i> Delete</button>
+                    <!-- Edit Mode Buttons -->
+                    <button type="button" class="btn-secondary edit-mode" onclick="toggleEntryEdit(false)">Cancel</button>
+                    <button type="submit" class="btn-primary edit-mode"><i class="fas fa-save"></i> Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script>
+      // Global variables
+      let currentEntries = [];
+      let overviewFilters = {
+        status: 'all',
+        type: 'all'
+      };
+
+      let pendingFilters = {
+        type: 'all'
+      };
+      let currentView = 'room';
+      let currentTheme = localStorage.getItem('theme') || 'dark';
+      let currentEntryId = null;
+      let ratingEntryId = null;
+
+      // Sidenav Functions
+      function openSidenav() {
+        document.getElementById('sidenav').classList.add('open');
+        document.getElementById('overlay').classList.add('show');
+      }
+
+      function closeSidenav() {
+        document.getElementById('sidenav').classList.remove('open');
+        document.getElementById('overlay').classList.remove('show');
+      }
+
+      // Initialize the application
+      function initializeApp() {
+        console.log('Initializing Multimedia Diary...');
+        
+        // Set theme
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        updateThemeIcon();
+        
+        // Setup event listeners
+        setupEventListeners();
+        
+        // Load initial data
+        loadEntries();
+        
+        // Setup form
+        setupForm();
+        
+        // Hide loading screen
+        setTimeout(() => {
+          document.getElementById('loadingScreen').classList.add('hidden');
+        }, 1000);
+      }
+
+      // Setup all event listeners
+      function setupEventListeners() {
+        // Navigation
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const view = e.currentTarget.getAttribute('data-view');
+            switchView(view);
+            closeSidenav(); // Close menu on selection
+          });
+        });
+        
+        
+        // Room zones
+        document.querySelectorAll('.room-zone').forEach(zone => {
+          zone.addEventListener('click', (e) => {
+            const type = e.currentTarget.getAttribute('data-type');
+            switchView('overview');
+            
+            // Small delay to ensure the view has switched
+            setTimeout(() => {
+              setTypeFilter(type);
+            }, 50);
+          });
+        });
+        
+        // Timeline filters -> Overview filters
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const filter = e.currentTarget.getAttribute('data-filter');
+            setStatusFilter(filter);
+          });
+        });
+        
+        document.querySelectorAll('.type-filter').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const type = e.currentTarget.getAttribute('data-type');
+            setTypeFilter(type);
+          });
+        });
+        
+        // Form submission
+        document.getElementById('addEntryForm').addEventListener('submit', handleFormSubmission);
+        
+        // Show/hide rating based on finish date
+        document.getElementById('finishDate').addEventListener('change', (e) => {
+          const ratingSection = document.getElementById('ratingSection');
+          // 'form-group' divs are flex containers in this design
+          ratingSection.style.display = e.target.value ? 'flex' : 'none';
+        });
+
+        // Rating slider
+        document.getElementById('rating').addEventListener('input', updateRatingDisplay);
+        
+        // Modal close
+        document.getElementById('entryModal').addEventListener('click', (e) => {
+          if (e.target === e.currentTarget) {
+            closeModal();
+          }
+        });
+        
+
+        // Show author field only for books
+        document.getElementById('type').addEventListener('change', (e) => {
+          document.getElementById('authorSection').style.display = e.target.value === 'book' ? 'block' : 'none';
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', handleKeyboardShortcuts);
+
+        // Search functionality - add after other event listeners
+        setTimeout(() => {
+          const pendingSearch = document.getElementById('pendingSearch');
+          const overviewSearch = document.getElementById('overviewSearch');
+          
+          if (pendingSearch) {
+            pendingSearch.addEventListener('input', debounce(() => {
+              if (currentView === 'pending') renderPending();
+            }, 300));
+          }
+          
+          if (overviewSearch) {
+            overviewSearch.addEventListener('input', debounce(() => {
+              if (currentView === 'overview') renderOverview();
+            }, 300));
+          }
+        }, 100);
+      }
+
+      // Switch between different views
+      function switchView(viewName) {
+        // Handle legacy timeline -> overview redirect
+        if (viewName === 'timeline') {
+          viewName = 'overview';
+        }
+        
+        // Update navigation
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+          btn.classList.remove('active');
+        });
+        document.querySelectorAll(`[data-view="${viewName}"]`).forEach(btn => {
+          btn.classList.add('active');
+        });
+        
+        // Update view sections
+        document.querySelectorAll('.view-section').forEach(section => {
+          section.classList.remove('active');
+        });
+        
+        const targetView = document.getElementById(viewName + 'View');
+        if (targetView) {
+          targetView.classList.add('active');
+        }
+        
+        currentView = viewName;
+        
+        // Load specific view data
+        switch(viewName) {
+          case 'stats':
+            loadStatistics();
+            break;
+          case 'overview':
+            // Reset overview filters UI to match current filter state
+            document.querySelectorAll('#overviewView .filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`#overviewView [data-filter="${overviewFilters.status}"]`)?.classList.add('active');
+            document.querySelectorAll('#overviewView .type-filter').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`#overviewView .type-filter[data-type="${overviewFilters.type}"]`)?.classList.add('active');
+            renderOverview();
+            break;
+          case 'pending':
+            // Reset pending filters UI to match current filter state
+            document.querySelectorAll('#pendingView .type-filter').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`#pendingView .type-filter[data-type="${pendingFilters.type}"]`)?.classList.add('active');
+            renderPending();
+            break;
+          case 'room':
+            updateRoomCounts();
+            break;
+          case 'add':
+            resetForm();
+            break;
+        }
+        
+        if (targetView) {
+          targetView.classList.add('fade-in');
+        }
+      }
+
+      // Load all entries from backend
+      async function loadEntries() {
+        try {
+          showToast('Loading entries...', 'info');
+          
+          const entries = await new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .getAllEntries();
+          });
+
+          console.log('Data received from server:', entries);
+          
+          currentEntries = entries || [];
+          console.log('Loaded entries:', currentEntries);
+          
+          updateUI();
+          showToast('Entries loaded successfully', 'success');
+        } catch (error) {
+          console.error('Error loading entries:', error);
+          showToast('Error loading entries: ' + error.message, 'error');
+          currentEntries = [];
+        }
+      }
+
+      // Update all UI components
+      function updateUI() {
+        updateRoomCounts();
+        if (currentView === 'overview') {
+          renderOverview();
+        } else if (currentView === 'pending') {
+          renderPending();
+        }
+        loadStatistics();
+      }
+
+      // Update room zone counters
+      function updateRoomCounts() {
+        const typeCounts = {};
+        
+        // Count all non-pending entries (includes unknown-dates, in-progress, and completed)
+        currentEntries
+          .filter(entry => entry.status !== 'pending')
+          .forEach(entry => {
+            typeCounts[entry.type] = (typeCounts[entry.type] || 0) + 1;
+          });
+        
+        document.querySelectorAll('.zone-count').forEach(counter => {
+          const type = counter.getAttribute('data-type');
+          const newCount = typeCounts[type] || 0;
+          const oldCount = parseInt(counter.textContent) || 0;
+          
+          counter.textContent = newCount;
+          
+          // Add animation if count changes
+          if (newCount !== oldCount) {
+            counter.classList.add('slide-up');
+            setTimeout(() => counter.classList.remove('slide-up'), 600);
+          }
+        });
+      }
+
+      // Render timeline with current filters
+      function renderTimeline() {
+        const container = document.getElementById('timelineContainer');
+        container.innerHTML = '';
+        
+        let filteredEntries = currentEntries.filter(entry => {
+          // Status filter
+          if (currentFilters.status === 'in-progress' && entry.status !== 'in-progress') {
+            return false;
+          }
+          if (currentFilters.status === 'completed' && entry.status !== 'completed') {
+            return false;
+          }
+          
+          // Type filter
+          if (currentFilters.type !== 'all' && entry.type !== currentFilters.type) {
+            return false;
+          }
+          
+          return true;
+        });
+        
+        // Sort by creation date (newest first)
+        filteredEntries.sort((a, b) => new Date(b.createdat) - new Date(a.createdat));
+        
+        if (filteredEntries.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-inbox" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+              <h3>No entries found</h3>
+              <p>Add some media entries to get started!</p>
+            </div>
+          `;
+          return;
+        }
+        
+        filteredEntries.forEach((entry, index) => {
+          const card = createMediaCard(entry);
+          container.appendChild(card);
+          
+          // Stagger animation
+          setTimeout(() => {
+            card.classList.add('slide-up');
+          }, index * 50);
+        });
+      } 
+
+      // Pending view functions
+      function renderPending() {
+        const container = document.getElementById('pendingContainer');
+        if (!container) {
+          console.error('Pending container not found');
+          return;
+        }
+        
+        container.innerHTML = '';
+        
+        let pendingEntries = currentEntries.filter(entry => entry.status === 'pending');
+        
+        // Apply search filter
+        const searchInput = document.getElementById('pendingSearch');
+        const searchTerm = searchInput?.value.toLowerCase() || '';
+        if (searchTerm) {
+          pendingEntries = pendingEntries.filter(entry => 
+            entry.title.toLowerCase().includes(searchTerm) ||
+            (entry.tags && entry.tags.toLowerCase().includes(searchTerm)) ||
+            (entry.author && entry.author.toLowerCase().includes(searchTerm))
+          );
+        }
+        
+        // Apply type filter using pendingFilters
+        if (pendingFilters.type !== 'all') {
+          pendingEntries = pendingEntries.filter(entry => entry.type === pendingFilters.type);
+        }
+        
+        // Rest remains the same...
+        if (pendingEntries.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-clock" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+              <h3>No pending items</h3>
+              <p>Add content you want to consume later!</p>
+            </div>
+          `;
+          return;
+        }
+        
+        pendingEntries.forEach((entry, index) => {
+          const card = createPendingCard(entry);
+          container.appendChild(card);
+          
+          setTimeout(() => {
+            card.classList.add('slide-up');
+          }, index * 50);
+        });
+      }
+
+      function createPendingCard(entry) {
+        const card = document.createElement('div');
+        card.className = 'pending-card';
+        card.setAttribute('data-entry-id', entry.id);
+        card.setAttribute('data-type', entry.type);
+        
+        const coverImage = entry.coverurl || getPlaceholderImage(entry.type, entry.title);
+        const tags = entry.tags ? entry.tags.split(',').map(tag => tag.trim()) : [];
+        
+        card.innerHTML = `
+          <div class="card-cover">
+            <img src="${coverImage}" alt="${entry.title}" class="cover-image" 
+                onerror="this.src='${getPlaceholderImage(entry.type, entry.title)}'">
+          </div>
+          <div class="card-content">
+            <div class="pending-header-row">
+              <h3 class="card-title">${entry.title}</h3>
+              <button class="start-btn" onclick="startPendingItem(event, '${entry.id}')" title="Start This Item">
+                <i class="fas fa-play"></i>
+              </button>
+            </div>
+            <div class="card-meta">
+              <span class="type-badge ${entry.type}">${capitalizeFirst(entry.type)}</span>
+            </div>
+            ${entry.hyperating ? `
+              <div class="hype-rating">
+                <i class="fas fa-fire"></i>
+                <span>${entry.hyperating}/10</span>
+              </div>
+            ` : ''}
+            ${tags.length > 0 ? `
+              <div class="tags-container">
+                ${tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+              </div>
+            ` : ''}
+            ${entry.notes ? `<p class="card-notes">${entry.notes}</p>` : ''}
+          </div>
+        `;
+        
+        card.addEventListener('click', (e) => {
+          if (!e.target.closest('.start-btn')) {
+            openEntryModal(entry);
+          }
+        });
+        
+        return card;
+      }
+
+      async function startPendingItem(event, entryId) {
+        event.stopPropagation();
+        
+        try {
+          const result = await new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .startPendingEntry(entryId);
+          });
+          
+          if (result.success) {
+            // Update local data
+            const entry = currentEntries.find(e => e.id === entryId);
+            if (entry) {
+              entry.startdate = new Date().toISOString();
+              entry.status = 'in-progress';
+            }
+            
+            renderPending();
+            updateRoomCounts();
+            showToast('Item started! Added to your active collection.', 'success');
+          } else {
+            throw new Error(result.error);
+          }
+        } catch (error) {
+          console.error('Error starting pending item:', error);
+          showToast('Error: ' + error.message, 'error');
+        }
+      }
+
+      // Update renderTimeline to renderOverview
+      function renderOverview() {
+        const container = document.getElementById('overviewContainer');
+        if (!container) {
+          console.error('Overview container not found');
+          return;
+        }
+        
+        container.innerHTML = '';
+        
+        // Only exclude explicitly pending items
+        let filteredEntries = currentEntries.filter(entry => entry.status !== 'pending');
+        
+        // Apply search filter
+        const searchInput = document.getElementById('overviewSearch');
+        const searchTerm = searchInput?.value.toLowerCase() || '';
+        if (searchTerm) {
+          filteredEntries = filteredEntries.filter(entry => 
+            entry.title.toLowerCase().includes(searchTerm) ||
+            (entry.tags && entry.tags.toLowerCase().includes(searchTerm)) ||
+            (entry.author && entry.author.toLowerCase().includes(searchTerm))
+          );
+        }
+        
+        // Apply status filters using overviewFilters
+        filteredEntries = filteredEntries.filter(entry => {
+          if (overviewFilters.status === 'in-progress' && entry.status !== 'in-progress') {
+            return false;
+          }
+          if (overviewFilters.status === 'completed' && entry.status !== 'completed') {
+            return false;
+          }
+          if (overviewFilters.type !== 'all' && entry.type !== overviewFilters.type) {
+            return false;
+          }
+          return true;
+        });
+        
+        // Rest remains the same...
+        filteredEntries.sort((a, b) => new Date(b.createdat) - new Date(a.createdat));
+        
+        if (filteredEntries.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-inbox" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+              <h3>No entries found</h3>
+              <p>Add some media entries to get started!</p>
+            </div>
+          `;
+          return;
+        }
+        
+        filteredEntries.forEach((entry, index) => {
+          const card = createMediaCard(entry);
+          container.appendChild(card);
+          
+          setTimeout(() => {
+            card.classList.add('slide-up');
+          }, index * 50);
+        });
+      }
+
+      // Create a media card element
+      function createMediaCard(entry) {
+        const card = document.createElement('div');
+        card.className = 'media-card';
+        card.setAttribute('data-entry-id', entry.id);
+        card.setAttribute('data-status', entry.status);
+        card.setAttribute('data-type', entry.type);
+        
+        const coverImage = entry.coverurl || getPlaceholderImage(entry.type, entry.title);
+        const notesIcon = entry.notes ? `<i class="fas fa-sticky-note notes-indicator" title="Has Notes"></i>` : '';
+        
+        let ratingDisplay = '';
+        if (entry.status === 'completed') {
+            if (typeof entry.rating === 'number') {
+                ratingDisplay = `<span class="rating">${entry.rating} <i class="fas fa-star"></i></span>`;
+            } else if (entry.rating === 'N/A') {
+                ratingDisplay = `<span class="rating" style="color: var(--text-muted); font-size: 0.8rem;">Not Rated</span>`;
+            } else {
+                ratingDisplay = `<span class="rating" style="color: var(--accent-warning); font-size: 0.8rem;">Pending Rating</span>`;
+            }
+        }
+        
+        card.innerHTML = `
+          <div class="card-cover">
+            <img src="${coverImage}" alt="${entry.title}" class="cover-image" onerror="this.src='${getPlaceholderImage(entry.type, entry.title)}'">
+          </div>
+          <div class="card-content">
+            <div class="card-header">
+              <h3 class="card-title">${entry.title}</h3>
+              ${entry.status === 'in-progress' ? `<button class="card-finish-btn" onclick="markAsFinished(event, '${entry.id}')" title="Mark as Finished"><i class="fas fa-check"></i></button>` : ''}
+            </div>
+            ${entry.author ? `<p class="card-author"><i class="fas fa-user-edit"></i> ${entry.author}</p>` : ''}
+            <div class="card-meta">
+              <span class="type-badge ${entry.type}">${capitalizeFirst(entry.type)}</span>
+              <span>${notesIcon}${ratingDisplay}</span>
+            </div>
+          </div>
+        `;
+        
+        card.addEventListener('click', () => openEntryModal(entry));
+        return card;
+      }
+
+      // Get placeholder image for content type
+      function getPlaceholderImage(type, title) {
+        const colors = {
+          videogame: '3b82f6',
+          film: 'ef4444',
+          series: '06b6d4',
+          book: '8b5cf6',
+          paper: '10b981'
+        };
+
+        const color = colors[type] || '6b7280';
+        const initials = title.substring(0, 2).toUpperCase();
+
+        return "https://placehold.co/300x400/" +
+              color +
+              "/ffffff?text=" +
+              encodeURIComponent(initials);
+      }
+
+
+      // Filter functions
+      function setStatusFilter(status) {
+        overviewFilters.status = status;
+        
+        // Update UI - only overview status buttons
+        document.querySelectorAll('#overviewView .filter-btn').forEach(btn => {
+          btn.classList.remove('active');
+        });
+        document.querySelector(`#overviewView [data-filter="${status}"]`)?.classList.add('active');
+        
+        if (currentView === 'overview') {
+          renderOverview();
+        }
+      }
+
+      function setTypeFilter(type) {
+        if (currentView === 'overview') {
+          overviewFilters.type = type;
+          
+          // Only update overview type filters
+          document.querySelectorAll('#overviewView .type-filter').forEach(btn => {
+            btn.classList.remove('active');
+          });
+          
+          const overviewButton = document.querySelector(`#overviewView .type-filter[data-type="${type}"]`);
+          if (overviewButton) {
+            overviewButton.classList.add('active');
+          }
+          
+          renderOverview();
+        } else if (currentView === 'pending') {
+          pendingFilters.type = type;
+          
+          // Only update pending type filters
+          document.querySelectorAll('#pendingView .type-filter').forEach(btn => {
+            btn.classList.remove('active');
+          });
+          
+          const pendingButton = document.querySelector(`#pendingView .type-filter[data-type="${type}"]`);
+          if (pendingButton) {
+            pendingButton.classList.add('active');
+          }
+          
+          renderPending();
+        }
+      }
+
+      function filterByType(type) {
+        setTypeFilter(type);
+      }
+
+      // Mark entry as finished - NOW OPENS THE RATING MODAL
+      async function markAsFinished(event, entryId) {
+        event.stopPropagation(); // Prevent the main modal from opening immediately
+
+        const entry = currentEntries.find(e => e.id === entryId);
+        if (!entry) return;
+
+        showToast('Finishing item...', 'info', 1500);
+
+        const updateData = {
+          finishDate: new Date().toISOString(),
+          status: 'completed'
+        };
+
+        try {
+          const result = await new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .updateEntry(entryId, updateData);
+          });
+
+          if (result.success) {
+            // Update local data
+            entry.finishdate = updateData.finishDate;
+            entry.status = updateData.status;
+            
+            // Refresh the main view and open the modal in edit mode to prompt for a rating
+            renderOverview();
+            openEntryModal(entry);
+            toggleEntryEdit(true);
+            showToast('Item finished! Add your rating.', 'success');
+          } else {
+            throw new Error(result.error);
+          }
+        } catch (error) {
+          console.error('Error marking as finished:', error);
+          showToast('Error: ' + error.message, 'error');
+        }
+      }
+      
+      
+
+        async function submitRating(isNotRated = false) {
+          if (!ratingEntryId) return;
+          
+          const ratingValue = isNotRated 
+            ? 0 // Use 0 as the signal for "Not Rated"
+            : parseInt(document.getElementById('modalRating').value);
+
+          const entryData = {
+              finishDate: new Date().toISOString(),
+              rating: ratingValue,
+              status: 'completed'
+          };
+          
+          const btn = document.getElementById('submitRatingBtn');
+          const originalText = btn.innerHTML;
+          btn.disabled = true;
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+          try {
+              const result = await new Promise((resolve, reject) => {
+                  google.script.run
+                      .withSuccessHandler(resolve)
+                      .withFailureHandler(reject)
+                      .updateEntry(ratingEntryId, entryData);
+              });
+              
+              if (result.success) {
+                  const entry = currentEntries.find(e => e.id === ratingEntryId);
+                  if (entry) {
+                      entry.finishdate = entryData.finishDate;
+                      entry.rating = isNotRated ? 'N/A' : ratingValue;
+                      entry.status = 'completed';
+                  }
+                  
+                  closeRatingModal();
+                  renderOverview();
+                  updateRoomCounts();
+                  loadStatistics();
+                  
+                  // --- THIS IS THE FIX ---
+                  // Use a different message depending on the action taken.
+                  const message = isNotRated 
+                    ? 'Entry marked as "Not Rated".' 
+                    : 'Rating saved successfully!';
+                  showToast(message, 'success');
+
+              } else {
+                  throw new Error(result.error);
+              }
+          } catch (error) {
+              console.error('Error updating rating:', error);
+              showToast('Error: ' + error.message, 'error');
+          } finally {
+              btn.disabled = false;
+              btn.innerHTML = originalText;
+          }
+      }
+
+      // Form handling
+      function setupForm() {
+        // Update rating display
+        updateRatingDisplay();
+      }
+
+      function updateRatingDisplay() {
+        const ratingInput = document.getElementById('rating');
+        const ratingValue = parseInt(ratingInput.value);
+        
+        // --- THIS IS THE FIX ---
+        // Display 'N/A' when slider is at 0
+        const displayValue = ratingValue === 0 ? 'N/A' : ratingValue;
+        document.getElementById('ratingValue').textContent = displayValue;
+        
+        const starsContainer = document.getElementById('ratingStars');
+        starsContainer.innerHTML = '';
+        
+        // When rating is 0, this loop correctly shows 10 empty stars
+        for (let i = 1; i <= 10; i++) {
+          const star = document.createElement('span');
+          star.className = `star ${i <= ratingValue ? '' : 'empty'}`;
+          star.innerHTML = '★';
+          starsContainer.appendChild(star);
+        }
+      }
+
+      async function handleFormSubmission(e) {
+        e.preventDefault();
+        
+        const finishDateValue = document.getElementById('finishDate').value;
+
+        const formData = {
+          title: document.getElementById('title').value.trim(),
+          type: document.getElementById('type').value,
+          author: document.getElementById('author').value.trim(), // Add this line
+          startDate: document.getElementById('startDate').value,
+          finishDate: finishDateValue,
+          rating: finishDateValue ? parseInt(document.getElementById('rating').value) : null,
+          notes: document.getElementById('notes').value.trim()
+        };
+        
+        // Basic validation
+        if (!formData.title || !formData.type) {
+          showFormFeedback('Please fill in all required fields (title and type)', 'error');
+          return;
+        }
+
+        // Date validation if both are provided
+        if (formData.startDate && formData.finishDate) {
+          const startDate = new Date(formData.startDate);
+          const finishDate = new Date(formData.finishDate);
+          if (finishDate < startDate) {
+            showFormFeedback('Finish date must be after start date', 'error');
+            return;
+          }
+        }
+        
+        // Disable form
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+        submitBtn.disabled = true;
+        
+        try {
+          const result = await new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .addMediaEntry(formData);
+          });
+          
+          if (result.success) {
+            showFormFeedback('toast_entry_added', 'success'); // Pass the KEY
+            resetForm();
+            loadEntries(); // Reload entries
+            
+            // Switch to timeline view
+            setTimeout(() => {
+              switchView('timeline');
+            }, 1000);
+          } else {
+            throw new Error(result.error);
+          }
+        } catch (error) {
+          console.error('Error adding entry:', error);
+          showFormFeedback('Error: ' + error.message, 'error');
+        } finally {
+          // Re-enable form
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
+        }
+      }
+
+      function resetForm() {
+        document.getElementById('addEntryForm').reset();
+        document.getElementById('startDate').value = '';
+        document.getElementById('rating').value = 5;
+        document.getElementById('ratingSection').style.display = 'none'; // Ensure it's hidden on reset
+        updateRatingDisplay();
+        clearFormFeedback();
+      }
+
+      function showFormFeedback(message, type) {
+        const feedback = document.getElementById('formFeedback');
+        feedback.textContent = message;
+        feedback.className = `form-feedback ${type}`;
+        feedback.style.display = 'block';
+        
+        if (type === 'success') {
+          setTimeout(clearFormFeedback, 3000);
+        }
+      }
+
+      function clearFormFeedback() {
+        const feedback = document.getElementById('formFeedback');
+        feedback.style.display = 'none';
+        feedback.textContent = '';
+        feedback.className = 'form-feedback';
+      }
+
+      // Statistics
+      async function loadStatistics() {
+        try {
+          const stats = await new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .getStatistics();
+          });
+          
+          updateStatisticsDisplay(stats);
+        } catch (error) {
+          console.error('Error loading statistics:', error);
+          // Use local data as fallback
+          const localStats = calculateLocalStatistics();
+          updateStatisticsDisplay(localStats);
+        }
+      }
+
+      function calculateLocalStatistics() {
+        const stats = {
+          total: currentEntries.length,
+          inProgress: currentEntries.filter(e => e.status === 'in-progress').length,
+          completed: currentEntries.filter(e => e.status === 'completed').length,
+          byType: {},
+          averageRating: 0,
+          recentActivity: currentEntries.slice(0, 5)
+        };
+        
+        // Calculate by type
+        currentEntries.forEach(entry => {
+          stats.byType[entry.type] = (stats.byType[entry.type] || 0) + 1;
+        });
+        
+        // Calculate average rating
+        const ratingsSum = currentEntries.reduce((sum, entry) => sum + (entry.rating || 0), 0);
+        stats.averageRating = currentEntries.length > 0 ? (ratingsSum / currentEntries.length).toFixed(1) : 0;
+        
+        return stats;
+      }
+
+      function updateStatisticsDisplay(stats) {
+        // Update stat cards
+        document.getElementById('totalEntries').textContent = stats.total || 0;
+        document.getElementById('inProgressCount').textContent = stats.inProgress || 0;
+        document.getElementById('completedCount').textContent = stats.completed || 0;
+        document.getElementById('averageRating').textContent = stats.averageRating || 0;
+        
+        // Update type chart
+        updateTypeChart(stats.byType || {});
+        
+        // Update recent activity
+        updateRecentActivity(stats.recentActivity || []);
+      }
+
+      function updateTypeChart(typeData) {
+        const canvas = document.getElementById('typeChart');
+        const ctx = canvas.getContext('2d');
+        
+        // Clear existing chart
+        if (window.typeChart instanceof Chart) {
+          window.typeChart.destroy();
+        }
+        
+        const types = Object.keys(typeData);
+        const counts = Object.values(typeData);
+        
+        if (types.length === 0) {
+          ctx.fillStyle = '#71717a';
+          ctx.font = '16px Inter';
+          ctx.textAlign = 'center';
+          ctx.fillText('No data available', canvas.width / 2, canvas.height / 2);
+          return;
+        }
+        
+        const colors = {
+          videogame: '#3b82f6',
+          film: '#ef4444',
+          series: '#06b6d4', 
+          book: '#8b5cf6',
+          paper: '#10b981'
+        };
+        
+        const backgroundColors = types.map(type => colors[type] || '#6b7280');
+        
+        window.typeChart = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: types.map(capitalizeFirst),
+            datasets: [{
+              data: counts,
+              backgroundColor: backgroundColors,
+              borderColor: '#1a1a1a',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  color: currentTheme === 'dark' ? '#ffffff' : '#1e293b',
+                  padding: 20,
+                  usePointStyle: true
+                }
+              }
+            }
+          }
+        });
+      }
+
+      function updateRecentActivity(activities) {
+        const container = document.getElementById('recentActivity');
+        container.innerHTML = '';
+        
+        if (activities.length === 0) {
+          container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No recent activity</p>';
+          return;
+        }
+        
+        activities.forEach(entry => {
+          const activityItem = document.createElement('div');
+          activityItem.className = 'activity-item';
+          
+          const icon = getTypeIcon(entry.type);
+          const timeAgo = getTimeAgo(entry.createdat);
+          
+          activityItem.innerHTML = `
+            <div class="activity-icon" style="color: ${getTypeColor(entry.type)}">
+              <i class="${icon}"></i>
+            </div>
+            <div class="activity-content">
+              <div class="activity-title">${entry.title}</div>
+              <div class="activity-meta">
+                ${capitalizeFirst(entry.type)} • Added ${timeAgo}
+              </div>
+            </div>
+          `;
+          
+          activityItem.addEventListener('click', () => openEntryModal(entry));
+          container.appendChild(activityItem);
+        });
+      }
+
+      // Modal functions
+      function openEntryModal(entry) {
+        currentEntryId = entry.id;
+        const modal = document.getElementById('entryModal');
+        const modalBody = document.getElementById('modalBody');
+        
+        // Always reset to view mode when opening
+        modal.querySelector('.modal-content').classList.remove('is-editing');
+        
+        // --- RENDER MODAL CONTENT ---
+        // This function now builds the entire inner HTML for the modal body,
+        // including both view-mode elements and hidden edit-mode inputs.
+        
+        const coverImage = entry.coverurl || getPlaceholderImage(entry.type, entry.title);
+        const metadata = typeof entry.metadata === 'string' ? 
+          JSON.parse(entry.metadata || '{}') : (entry.metadata || {});
+
+        const ratingValue = entry.rating || 5;
+        const hypeRatingValue = entry.hyperating || 7;
+        
+        // Helper to format date for input fields
+        const formatDateForInput = (dateString) => dateString ? new Date(dateString).toISOString().split('T')[0] : '';
+        
+        modalBody.innerHTML = `
+          <input type="hidden" id="editEntryId" value="${entry.id}">
+          <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
+            <div class="modal-cover view-mode">
+              <img src="${coverImage}" alt="${entry.title}" style="width: 200px; height: auto; border-radius: 8px; box-shadow: var(--shadow-lg);">
+            </div>
+            
+            <div class="modal-info" style="flex: 1; min-width: 250px;">
+              <!-- Title -->
+              <h3 class="view-mode">${entry.title}</h3>
+              <div class="form-group edit-mode">
+                <label for="editTitle">Title *</label>
+                <input type="text" id="editTitle" class="form-control" value="${entry.title}" required>
+              </div>
+
+              <!-- Type -->
+              <div class="view-mode" style="margin-bottom: 1rem;"><span class="type-badge ${entry.type}">${capitalizeFirst(entry.type)}</span></div>
+              <div class="form-group edit-mode">
+                  <label for="editType">Type *</label>
+                  <select id="editType" class="form-control" required>
+                      <option value="videogame" ${entry.type === 'videogame' ? 'selected' : ''}>🎮 Video Game</option>
+                      <option value="film" ${entry.type === 'film' ? 'selected' : ''}>🎬 Film</option>
+                      <option value="series" ${entry.type === 'series' ? 'selected' : ''}>📺 TV Series</option>
+                      <option value="book" ${entry.type === 'book' ? 'selected' : ''}>📚 Book</option>
+                      <option value="paper" ${entry.type === 'paper' ? 'selected' : ''}>📄 Scientific Paper</option>
+                  </select>
+              </div>
+
+              <!-- Author (conditional) -->
+              ${entry.type === 'book' ? `
+                <div class="view-mode">
+                  ${entry.author ? `<p><strong>Author:</strong> ${entry.author}</p>` : ''}
+                </div>
+                <div class="form-group edit-mode">
+                  <label for="editAuthor">Author</label>
+                  <input type="text" id="editAuthor" value="${entry.author || ''}">
+                </div>
+              ` : ''}
+
+              <!-- Active/Completed Section -->
+              <div class="edit-section-active" style="${entry.status === 'pending' ? 'display:none;' : ''}">
+                  <div class="modal-dates view-mode">
+                    ${entry.startdate ? `<p><strong>Started:</strong> ${formatDate(entry.startdate)}</p>` : ''}
+                    ${entry.finishdate ? `<p><strong>Finished:</strong> ${formatDate(entry.finishdate)}</p>` : ''}
+                  </div>
+                  <div class="form-row edit-mode">
+                    <div class="form-group">
+                        <label for="editStartDate">Start Date</label>
+                        <input type="date" id="editStartDate" value="${formatDateForInput(entry.startdate)}">
+                    </div>
+                    <div class="form-group">
+                        <label for="editFinishDate">Finish Date</label>
+                        <input type="date" id="editFinishDate" value="${formatDateForInput(entry.finishdate)}">
+                    </div>
+                  </div>
+                  <div class="view-mode">
+                      ${(() => {
+                          if (entry.status !== 'completed') return '';
+                          let ratingText = '<strong>Rating:</strong> ';
+                          if (typeof entry.rating === 'number') {
+                              ratingText += `${entry.rating}/10`;
+                          } else if (entry.rating === 'N/A') {
+                              ratingText += 'Not Rated';
+                          } else {
+                              ratingText += `<span style="color: var(--accent-warning);">Pending Rating</span>`;
+                          }
+                          return `<p>${ratingText}</p>`;
+                      })()}
+                  </div>
+                  <div class="form-group edit-mode">
+                      <label for="editRating">Rating (0 for N/A)</label>
+                      <div class="rating-container">
+                          <input type="range" id="editRating" min="0" max="10" value="${entry.rating === 'N/A' ? 0 : (entry.rating || 5)}">
+                          <span id="editRatingValue" class="rating-value">${entry.rating === 'N/A' ? 'N/A' : (entry.rating || 5)}</span>
+                      </div>
+                  </div>
+              </div>
+
+              <!-- Pending Section -->
+              <div class="edit-section-pending" style="${entry.status !== 'pending' ? 'display:none;' : ''}">
+                  <div class="view-mode">
+                    ${entry.hyperating ? `<p><strong>Hype:</strong> ${entry.hyperating}/10</p>` : ''}
+                    ${entry.tags ? `<p><strong>Tags:</strong> ${entry.tags}</p>` : ''}
+                  </div>
+                  <div class="form-group edit-mode">
+                    <label for="editTags">Tags</label>
+                    <input type="text" id="editTags" value="${entry.tags || ''}">
+                  </div>
+                   <div class="form-group edit-mode">
+                        <label for="editHypeRating">Hype Rating (1-10)</label>
+                        <div class="rating-container">
+                            <input type="range" id="editHypeRating" min="1" max="10" value="${hypeRatingValue}">
+                            <span id="editHypeRatingValue" class="rating-value">${hypeRatingValue}</span>
+                        </div>
+                  </div>
+              </div>
+              
+              <!-- Notes -->
+              <div class="modal-notes">
+                <!-- This header only appears in VIEW mode -->
+                <div class="modal-section-header view-mode">
+                    <h4 style="margin:0; padding:0; border:0;">Notes</h4>
+                    <button type="button" id="editNotesBtn" class="btn-icon" onclick="toggleNotesEdit(true)" title="Edit Notes">
+                        <i class="fas fa-pencil-alt"></i>
+                    </button>
+                </div>
+                
+                <!-- The main edit form's label, only visible in full EDIT mode -->
+                <p class="edit-mode"><strong>Notes:</strong></p>
+
+                <!-- Display text (visible in view mode) -->
+                <p id="modalNotesText" class="view-mode" style="white-space: pre-wrap; color: var(--text-secondary);">${entry.notes || '<i>No notes.</i>'}</p>
+                
+                <!-- Quick-edit textarea (initially hidden) -->
+                <textarea id="modalNotesTextarea" class="view-mode" style="display: none; width: 100%; min-height: 100px; resize: vertical;"></textarea>
+                <div id="modalNotesActions" class="view-mode" style="display: none; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                    <button type="button" class="btn-secondary" onclick="toggleNotesEdit(false)">Cancel</button>
+                    <button type="button" class="btn-primary" onclick="saveNotes()">Save Note</button>
+                </div>
+
+                <!-- Main edit form's textarea (visible in full EDIT mode) -->
+                <div class="form-group edit-mode">
+                  <textarea id="editNotes" rows="4">${entry.notes || ''}</textarea>
+                </div>
+              </div>
+              <!-- End of Notes section -->
+            </div>
+          </div>
+        `;
+
+        // Update modal title separately (since it's in the header)
+        const modalTitleEl = document.getElementById('modalTitle');
+        modalTitleEl.innerHTML = `${entry.title} ${entry.notes ? `<i class="fas fa-sticky-note notes-indicator" title="Has Notes"></i>` : ''}`;
+        modal.classList.add('show');
+
+        // Add event listeners for sliders inside the modal
+        const editRating = document.getElementById('editRating');
+        if(editRating) {
+          editRating.addEventListener('input', (e) => {
+            const displayValue = e.target.value === '0' ? 'N/A' : e.target.value;
+            document.getElementById('editRatingValue').textContent = displayValue;
+          });
+        }
+
+        const editHypeRating = document.getElementById('editHypeRating');
+        if(editHypeRating) editHypeRating.addEventListener('input', (e) => document.getElementById('editHypeRatingValue').textContent = e.target.value);
+      }
+
+      function closeModal() {
+        document.getElementById('entryModal').classList.remove('show');
+        // Ensure we exit edit mode when closing
+        document.getElementById('entryModal').querySelector('.modal-content').classList.remove('is-editing');
+        currentEntryId = null;
+      }
+
+      function toggleEntryEdit(isEditing) {
+          const modalContent = document.getElementById('entryModal').querySelector('.modal-content');
+          if (isEditing) {
+              modalContent.classList.add('is-editing');
+          } else {
+              modalContent.classList.remove('is-editing');
+          }
+      }
+
+      function toggleNotesEdit(isEditing) {
+          const notesText = document.getElementById('modalNotesText');
+          const notesTextarea = document.getElementById('modalNotesTextarea');
+          const editBtn = document.getElementById('editNotesBtn');
+          const notesActions = document.getElementById('modalNotesActions');
+
+          if (isEditing) {
+              // Get raw text from the current data to avoid showing the "No notes" placeholder
+              const currentEntry = currentEntries.find(e => e.id === currentEntryId);
+              notesTextarea.value = currentEntry.notes || ''; 
+
+              notesText.style.display = 'none';
+              editBtn.style.display = 'none';
+              notesTextarea.style.display = 'block';
+              notesActions.style.display = 'flex';
+              notesTextarea.focus();
+          } else {
+              notesText.style.display = 'block';
+              editBtn.style.display = 'block';
+              notesTextarea.style.display = 'none';
+              notesActions.style.display = 'none';
+          }
+      }
+
+      async function saveNotes() {
+          if (!currentEntryId) return;
+
+          const newNotes = document.getElementById('modalNotesTextarea').value.trim();
+          const updateData = { notes: newNotes };
+
+          const saveBtn = document.querySelector('#modalNotesActions .btn-primary');
+          const originalText = saveBtn.innerHTML;
+          saveBtn.disabled = true;
+          saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+          try {
+              const result = await new Promise((resolve, reject) => {
+                  google.script.run
+                      .withSuccessHandler(resolve)
+                      .withFailureHandler(reject)
+                      .updateEntry(currentEntryId, updateData);
+              });
+
+              if (result.success) {
+                  // Update local data store
+                  const entry = currentEntries.find(e => e.id === currentEntryId);
+                  if (entry) {
+                      entry.notes = newNotes;
+                  }
+
+                  // Update all three places the notes are displayed/edited
+                  document.getElementById('modalNotesText').innerHTML = newNotes || '<i>No notes.</i>';
+                  document.getElementById('modalNotesTextarea').value = newNotes;
+                  document.getElementById('editNotes').value = newNotes; // Sync with main edit form
+
+                  toggleNotesEdit(false);
+                  showToast('Notes updated successfully!', 'success');
+              } else {
+                  throw new Error(result.error);
+              }
+          } catch (error) {
+              console.error('Error saving notes:', error);
+              showToast('Error: ' + error.message, 'error');
+          } finally {
+              saveBtn.disabled = false;
+              saveBtn.innerHTML = originalText;
+          }
+      }
+
+      async function saveEntryChanges(event) {
+        event.preventDefault();
+        if (!currentEntryId) return;
+
+        const originalEntry = currentEntries.find(e => e.id === currentEntryId);
+        if (!originalEntry) return;
+
+        let updateData = {
+            title: document.getElementById('editTitle').value.trim(),
+            type: document.getElementById('editType').value,
+            notes: document.getElementById('editNotes').value.trim(),
+            author: originalEntry.type === 'book' ? document.getElementById('editAuthor').value.trim() : '',
+        };
+
+        if (originalEntry.status === 'pending') {
+            updateData.tags = document.getElementById('editTags').value.trim();
+            updateData.hypeRating = parseInt(document.getElementById('editHypeRating').value);
+        } else {
+            updateData.startDate = document.getElementById('editStartDate').value;
+            updateData.finishDate = document.getElementById('editFinishDate').value;
+            updateData.rating = updateData.finishDate ? parseInt(document.getElementById('editRating').value) : ''; // The value '0' will be sent for N/A
+            
+            if (updateData.finishDate) updateData.status = 'completed';
+            else if (updateData.startDate) updateData.status = 'in-progress';
+            else updateData.status = 'unknown-dates';
+        }
+        
+        const saveBtn = document.querySelector('#modalEditForm button[type="submit"]');
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+        try {
+            // --- THIS IS THE FIX ---
+            // Wrap the call in a new Promise to correctly await the result.
+            const result = await new Promise((resolve, reject) => {
+                google.script.run
+                    .withSuccessHandler(resolve)
+                    .withFailureHandler(reject)
+                    .updateEntry(currentEntryId, updateData);
+            });
+
+            if (result.success) {
+                const entryIndex = currentEntries.findIndex(e => e.id === currentEntryId);
+                if (entryIndex !== -1) {
+                    currentEntries[entryIndex] = { ...currentEntries[entryIndex], ...updateData };
+                }
+                
+                openEntryModal(currentEntries[entryIndex]);
+                toggleEntryEdit(false); 
+                updateUI(); 
+                showToast('Entry updated successfully!', 'success');
+            } else {
+                // This will now correctly handle errors returned from the server
+                throw new Error(result.error || 'Unknown error occurred on the server.');
+            }
+        } catch (error) {
+            console.error('Error updating entry:', error);
+            showToast('Error: ' + error.message, 'error');
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+        }
+      }
+
+      async function deleteCurrentEntry() {
+        if (!currentEntryId) return;
+        
+        if (!confirm('Are you sure you want to delete this entry? This action cannot be undone.')) {
+          return;
+        }
+        
+        try {
+          const result = await new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .deleteEntry(currentEntryId);
+          });
+          
+          if (result.success) {
+            currentEntries = currentEntries.filter(e => e.id !== currentEntryId);
+            closeModal();
+            updateUI();
+            showToast('Entry deleted successfully', 'success');
+          } else {
+            throw new Error(result.error);
+          }
+        } catch (error) {
+          console.error('Error deleting entry:', error);
+          showToast('Error: ' + error.message, 'error');
+        }
+      }
+
+      // Theme functions
+      function toggleTheme() {
+        currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        localStorage.setItem('theme', currentTheme);
+        updateThemeIcon();
+      }
+
+      function updateThemeIcon() {
+        const themeBtn = document.querySelector('.theme-toggle i');
+        themeBtn.className = currentTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+      }
+
+      // Toast notifications
+      function showToast(message, type = 'info', duration = 3000) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        const icons = {
+          success: 'fas fa-check-circle',
+          error: 'fas fa-exclamation-circle', 
+          warning: 'fas fa-exclamation-triangle',
+          info: 'fas fa-info-circle'
+        };
+        
+        toast.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i class="${icons[type] || icons.info}"></i>
+            <span>${message}</span>
+          </div>
+        `;
+        
+        container.appendChild(toast);
+        
+        // Show toast
+        setTimeout(() => toast.classList.add('show'), 100);
+        
+        // Hide and remove toast
+        setTimeout(() => {
+          toast.classList.remove('show');
+          setTimeout(() => container.removeChild(toast), 300);
+        }, duration);
+      }
+
+      // Keyboard shortcuts
+      function handleKeyboardShortcuts(e) {
+        // Ctrl/Cmd + K: Add new entry
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+          e.preventDefault();
+          switchView('add');
+          document.getElementById('title').focus();
+        }
+        
+        // Escape: Close modal
+        if (e.key === 'Escape') {
+          const entryModal = document.getElementById('entryModal');
+          if (entryModal.classList.contains('show')) {
+            closeModal();
+          }
+        }
+        
+        // Number keys: Switch views
+        if (e.key >= '1' && e.key <= '5' && !e.target.matches('input, textarea')) {
+          const views = ['room', 'pending', 'timeline', 'stats', 'add'];
+          switchView(views[parseInt(e.key) - 1]);
+        }
+      }
+
+      // Utility functions
+      function capitalizeFirst(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+      }
+
+      function formatDate(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('es-ES', { 
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric' 
+        });
+      }
+
+      function getTimeAgo(dateString) {
+        if (!dateString) return '';
+        
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffTime = Math.abs(now - date);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 1) return 'yesterday';
+        if (diffDays < 7) return `${diffDays} days ago`;
+        if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+        if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+        return `${Math.floor(diffDays / 365)} years ago`;
+      }
+
+      function getTypeIcon(type) {
+        const icons = {
+          videogame: 'fas fa-gamepad',
+          film: 'fas fa-film',
+          series: 'fas fa-tv',
+          book: 'fas fa-book',
+          paper: 'fas fa-scroll'
+        };
+        return icons[type] || 'fas fa-circle';
+      }
+
+      function getTypeColor(type) {
+        const colors = {
+          videogame: '#3b82f6',
+          film: '#ef4444',
+          series: '#06b6d4',
+          book: '#8b5cf6',
+          paper: '#10b981'
+        };
+        return colors[type] || '#6b7280';
+      }
+
+      function formatMetadata(metadata) {
+        if (!metadata || Object.keys(metadata).length === 0) {
+          return '<p>No additional information available.</p>';
+        }
+        
+        let html = '<div class="metadata-grid">';
+        
+        Object.entries(metadata).forEach(([key, value]) => {
+          if (value && value !== 'N/A' && value !== '') {
+            const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+            let displayValue = value;
+            
+            // Handle arrays
+            if (Array.isArray(value)) {
+              displayValue = value.join(', ');
+            }
+            
+            // Handle URLs
+            if (typeof value === 'string' && value.startsWith('http')) {
+              displayValue = `<a href="${value}" target="_blank" rel="noopener">View</a>`;
+            }
+            
+            html += `<p><strong>${label}:</strong> ${displayValue}</p>`;
+          }
+        });
+        
+        html += '</div>';
+        return html;
+      }
+
+      // Form tab switching
+      function switchFormTab(formType) {
+        document.querySelectorAll('.form-tab').forEach(tab => tab.classList.remove('active'));
+        document.querySelector(`[data-form="${formType}"]`).classList.add('active');
+        
+        if (formType === 'direct') {
+          document.getElementById('addEntryForm').style.display = 'block';
+          document.getElementById('addPendingForm').style.display = 'none';
+        } else {
+          document.getElementById('addEntryForm').style.display = 'none';
+          document.getElementById('addPendingForm').style.display = 'block';
+        }
+      }
+
+      // Pending form handling
+      document.getElementById('addPendingForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = {
+          title: document.getElementById('pendingTitle').value.trim(),
+          type: document.getElementById('pendingType').value,
+          tags: document.getElementById('pendingTags').value.trim(),
+          hypeRating: parseInt(document.getElementById('pendingHype').value),
+          notes: document.getElementById('pendingNotes').value.trim()
+        };
+        
+        if (!formData.title || !formData.type) {
+          showFormFeedback('Please fill in title and type', 'error');
+          return;
+        }
+        
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+        submitBtn.disabled = true;
+        
+        try {
+          const result = await new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .addPendingEntry(formData);
+          });
+          
+          if (result.success) {
+            showFormFeedback('Added to pending list!', 'success');
+            resetPendingForm();
+            loadEntries();
+            
+            setTimeout(() => switchView('pending'), 1000);
+          } else {
+            throw new Error(result.error);
+          }
+        } catch (error) {
+          console.error('Error adding pending entry:', error);
+          showFormFeedback('Error: ' + error.message, 'error');
+        } finally {
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
+        }
+      });
+
+      function resetPendingForm() {
+        document.getElementById('addPendingForm').reset();
+        document.getElementById('pendingHype').value = 7;
+        document.getElementById('pendingHypeValue').textContent = 7;
+      }
+
+      // Update pending hype rating display
+      document.getElementById('pendingHype').addEventListener('input', (e) => {
+        document.getElementById('pendingHypeValue').textContent = e.target.value;
+      });
+
+      // Search functionality
+      document.getElementById('pendingSearch').addEventListener('input', debounce(() => {
+        if (currentView === 'pending') renderPending();
+      }, 300));
+
+      document.getElementById('overviewSearch').addEventListener('input', debounce(() => {
+        if (currentView === 'overview') renderOverview();
+      }, 300));
+
+      // Debounce utility
+      function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
+
+      // Update global exports
+      window.switchFormTab = switchFormTab;
+      window.startPendingItem = startPendingItem;
+
+      // Export functions for global access
+      window.initializeApp = initializeApp;
+      window.switchView = switchView;
+      window.markAsFinished = markAsFinished;
+      window.resetForm = resetForm;
+      window.toggleTheme = toggleTheme;
+      window.closeModal = closeModal;
+      window.deleteCurrentEntry = deleteCurrentEntry;
+      window.openSidenav = openSidenav;
+      window.closeSidenav = closeSidenav;
+      window.toggleEntryEdit = toggleEntryEdit;
+      window.saveEntryChanges = saveEntryChanges;
+      window.toggleNotesEdit = toggleNotesEdit; // Add this line
+      window.saveNotes = saveNotes;             // Add this line
+    </script>
+
+    <script>
+        // Initialize app when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+    </script>
+</body>
+</html>
