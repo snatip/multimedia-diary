@@ -66,9 +66,13 @@ function fetchBookMetadata(title) {
     
     if (data.items && data.items.length > 0) {
       const book = data.items[0].volumeInfo;
+      const rawCover =
+        book.imageLinks?.thumbnail?.replace('http:', 'https:') ||
+        book.imageLinks?.smallThumbnail?.replace('http:', 'https:') ||
+        '';
+      
       return {
-        coverURL: book.imageLinks?.thumbnail?.replace('http:', 'https:') || 
-                  book.imageLinks?.smallThumbnail?.replace('http:', 'https:') || '',
+        coverURL: rawCover ? rawCover + '&fife=w800' : '',
         additionalInfo: {
           authors: book.authors || [],
           publishedDate: book.publishedDate || '',
@@ -289,7 +293,7 @@ function getPlaceholderCover(type, title) {
   const encodedTitle = encodeURIComponent(title.substring(0, 2).toUpperCase());
   
   // Using a placeholder service (you might want to use a different one)
-  return `https://placehold.co/300x450/${color.substring(1)}/FFFFFF?text=${encodedTitle}`;
+  return `https://placehold.jp/300x450/${color.substring(1)}/FFFFFF?text=${encodedTitle}`;
 }
 
 /**
