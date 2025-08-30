@@ -2815,7 +2815,7 @@
         
         let filteredEntries = currentEntries.filter(entry => {
           // Status filter
-          if (currentFilters.status === 'in-progress' && entry.status !== 'in-progress') {
+          if (currentFilters.status === 'in-progress' && entry.status !== 'in-progress' && entry.status !== 'in-progress-no-dates') {
             return false;
           }
           if (currentFilters.status === 'completed' && entry.status !== 'completed') {
@@ -3010,10 +3010,10 @@
         
         // Apply status filters using overviewFilters
         filteredEntries = filteredEntries.filter(entry => {
-          if (overviewFilters.status === 'in-progress' && entry.status !== 'in-progress') {
+          if (overviewFilters.status === 'in-progress' && entry.status !== 'in-progress' && entry.status !== 'in-progress-no-dates') {
             return false;
           }
-          if (overviewFilters.status === 'completed' && entry.status !== 'completed') {
+          if (overviewFilters.status === 'completed' && entry.status !== 'completed' && entry.status !== 'completed-no-dates') {
             return false;
           }
           if (overviewFilters.type !== 'all' && entry.type !== overviewFilters.type) {
@@ -3059,7 +3059,7 @@
         
         // Enhanced date display for different item types
         let dateDisplay = '';
-        if (entry.status === 'unknown-dates') {
+        if (entry.status === 'unknown-dates' || entry.status === 'completed-no-dates' || entry.status === 'in-progress-no-dates') {
           dateDisplay = '<i class="fas fa-question-circle"></i> Dates not recorded';
         } else if (entry.status === 'completed' && !entry.startdate && entry.finishdate) {
           const finishDate = new Date(entry.finishdate).toLocaleDateString();
