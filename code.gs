@@ -69,28 +69,31 @@ function addMediaEntry(entryData) {
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
     const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
     
-    // Determine item type and set appropriate status
+    // Determine item type and set appropriate status based on new logic
     let itemStatus;
+    const ratingValue = entryData.rating;
+    const isFinished = entryData.isFinished; // This will come from the checkbox
+    
     if (!entryData.startDate && !entryData.finishDate) {
-      // Type 1: No remembered dates
-      if (entryData.rating && entryData.rating !== '' && entryData.rating !== 'N/A') {
-        // Type 1a: No dates but has rating = finished without recorded dates
-        itemStatus = 'completed-no-dates';
-      } else {
-        // Type 1b: No dates, no rating = in progress without recorded dates
-        itemStatus = 'in-progress-no-dates';
-      }
+        // Type 1: No remembered dates
+        if (isFinished || (ratingValue && ratingValue !== '' && ratingValue !== 'N/A' && ratingValue !== '0' && ratingValue !== 0)) {
+            // Either explicitly marked as finished OR has a rating = completed without dates
+            itemStatus = 'completed-no-dates';
+        } else {
+            // Not marked as finished and no rating = in progress without known start date
+            itemStatus = 'in-progress-no-dates';
+        }
     } else if (!entryData.startDate && entryData.finishDate) {
-      // Type 2: Unknown start, known finish
-      itemStatus = 'completed';
+        // Type 2: Unknown start, known finish
+        itemStatus = 'completed';
     } else if (entryData.startDate && !entryData.finishDate) {
-      // Type 3: In progress with known start
-      itemStatus = 'in-progress';  
+        // Type 3: In progress with known start
+        itemStatus = 'in-progress';  
     } else if (entryData.startDate && entryData.finishDate) {
-      // Type 4: Full date info
-      itemStatus = 'completed';
+        // Type 4: Full date info
+        itemStatus = 'completed';
     } else {
-      itemStatus = 'in-progress-no-dates'; // fallback
+        itemStatus = 'in-progress-no-dates'; // fallback
     }
 
     if (!entryData.title || !entryData.type) {
