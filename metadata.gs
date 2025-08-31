@@ -341,7 +341,7 @@ function generateQualityPlaceholder(title, type) {
   
   // Try multiple placeholder services in order of preference
   const placeholderServices = [
-    `https://via.placeholder.com/300x450/${color.substring(1)}/FFFFFF?text=${encodedTitle}`,
+    `https://placehold.co/300x450/${color.substring(1)}/FFFFFF?text=${encodedTitle}`,
     `https://picsum.photos/seed/${encodeURIComponent(title)}/300/450.jpg`,
     `https://source.unsplash.com/300x450/?book,cover&sig=${encodeURIComponent(title)}`
   ];
@@ -577,6 +577,230 @@ function validateImageURL(url) {
   }
   
   return '';
+}
+
+/**
+ * Fetch alternative metadata with different sources (for cover replacement)
+ */
+function fetchAlternativeMetadata(title, type) {
+  let metadata = { 
+    coverURL: '', 
+    additionalInfo: {},
+    fetchedAt: new Date().toISOString()
+  };
+  
+  try {
+    switch (type.toLowerCase()) {
+      case 'book':
+        metadata = fetchAlternativeBookMetadata(title);
+        break;
+      case 'film':
+      case 'movie':
+        metadata = fetchAlternativeMovieMetadata(title);
+        break;
+      case 'series':
+      case 'tv':
+        metadata = fetchAlternativeTVMetadata(title);
+        break;
+      case 'videogame':
+      case 'game':
+        metadata = fetchAlternativeGameMetadata(title);
+        break;
+      case 'paper':
+      case 'scientific':
+        metadata = fetchAlternativePaperMetadata(title);
+        break;
+      default:
+        console.log(`No alternative metadata fetching available for type: ${type}`);
+    }
+  } catch (error) {
+    console.error(`Alternative metadata fetch error for ${type}:`, error);
+  }
+  
+  return metadata;
+}
+
+/**
+ * Fetch alternative book metadata with different sources and parameters
+ */
+function fetchAlternativeBookMetadata(title) {
+  try {
+    // Try Open Library first as alternative
+    const openLibraryCover = getOpenLibraryCover(title);
+    if (openLibraryCover) {
+      return {
+        coverURL: openLibraryCover,
+        additionalInfo: {
+          source: 'Open Library',
+          alternative: true
+        },
+        source: 'Open Library',
+        fetchedAt: new Date().toISOString()
+      };
+    }
+    
+    // Try Google Books with different search parameters
+    const scriptProperties = PropertiesService.getScriptProperties();
+    const apiKey = scriptProperties.getProperty('GOOGLE_BOOKS_API_KEY');
+    
+    if (apiKey) {
+      const encodedTitle = encodeURIComponent(title);
+      
+      // Try different search queries
+      const searchQueries = [
+        `intitle:${encodedTitle}`,
+        `${encodedTitle}`, // Search without intitle operator
+        `${encodedTitle.replace(/\s+/g, '+')}` // Replace spaces with pluses
+      ];
+      
+      for (const query of searchQueries) {
+        try {
+          const url = `https://www.googleapis.com/books/v1/volumes?q=${query}&maxResults=5&key=${apiKey}`;
+          const response = UrlFetchApp.fetch(url, {
+            method: 'GET',
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (compatible; GoogleAppsScript)'
+            },
+            muteHttpExceptions: true
+          });
+          
+          if (response.getResponseCode() === 200) {
+            const data = JSON.parse(response.getContentText());
+            
+            if (data.items && data.items.length > 0) {
+              // Look for covers with different sizes or sources
+              for (const item of data.items) {
+                const book = item.volumeInfo;
+                if (book.imageLinks) {
+                  // Try different image sizes
+                  const imageSizes = ['extraLarge', 'large', 'medium', 'thumbnail', 'smallThumbnail'];
+                  for (const size of imageSizes) {
+                    if (book.imageLinks[size]) {
+                      const coverUrl = enhanceBookCoverUrl(book.imageLinks[size]);
+                      if (isGoodCoverImage(coverUrl)) {
+                        return {
+                          coverURL: coverUrl,
+                          additionalInfo: {
+                            authors: book.authors || [],
+                            publishedDate: book.publishedDate || '',
+                            source: 'Google Books (Alternative)',
+                            alternative: true
+                          },
+                          source: 'Google Books (Alternative)',
+                          fetchedAt: new Date().toISOString()
+                        };
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.log(`Alternative search query failed: ${query}`, e);
+        }
+      }
+    }
+    
+    // If all else fails, generate a quality placeholder
+    return {
+      coverURL: generateQualityPlaceholder(title, 'book'),
+      additionalInfo: {
+        source: 'Generated Placeholder',
+        alternative: true
+      },
+      source: 'Generated Placeholder',
+      fetchedAt: new Date().toISOString()
+    };
+    
+  } catch (error) {
+    console.error('Alternative book metadata fetch error:', error);
+    return getDefaultMetadata();
+  }
+}
+
+/**
+ * Fetch alternative movie metadata
+ */
+function fetchAlternativeMovieMetadata(title) {
+  try {
+    // Try different movie APIs or generate placeholder
+    return {
+      coverURL: generateQualityPlaceholder(title, 'film'),
+      additionalInfo: {
+        source: 'Generated Placeholder',
+        alternative: true
+      },
+      source: 'Generated Placeholder',
+      fetchedAt: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('Alternative movie metadata fetch error:', error);
+    return getDefaultMetadata();
+  }
+}
+
+/**
+ * Fetch alternative TV metadata
+ */
+function fetchAlternativeTVMetadata(title) {
+  try {
+    // Try different TV APIs or generate placeholder
+    return {
+      coverURL: generateQualityPlaceholder(title, 'series'),
+      additionalInfo: {
+        source: 'Generated Placeholder',
+        alternative: true
+      },
+      source: 'Generated Placeholder',
+      fetchedAt: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('Alternative TV metadata fetch error:', error);
+    return getDefaultMetadata();
+  }
+}
+
+/**
+ * Fetch alternative game metadata
+ */
+function fetchAlternativeGameMetadata(title) {
+  try {
+    // Try different game APIs or generate placeholder
+    return {
+      coverURL: generateQualityPlaceholder(title, 'videogame'),
+      additionalInfo: {
+        source: 'Generated Placeholder',
+        alternative: true
+      },
+      source: 'Generated Placeholder',
+      fetchedAt: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('Alternative game metadata fetch error:', error);
+    return getDefaultMetadata();
+  }
+}
+
+/**
+ * Fetch alternative paper metadata
+ */
+function fetchAlternativePaperMetadata(title) {
+  try {
+    // Scientific papers typically don't have covers, return empty
+    return {
+      coverURL: '',
+      additionalInfo: {
+        source: 'No Cover Available',
+        alternative: true
+      },
+      source: 'No Cover Available',
+      fetchedAt: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('Alternative paper metadata fetch error:', error);
+    return getDefaultMetadata();
+  }
 }
 
 /**
