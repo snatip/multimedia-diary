@@ -158,13 +158,13 @@ function addPendingEntry(entryData) {
       createdat: new Date(),
       title: entryData.title,
       type: entryData.type,
+      author: entryData.author || '', // CRITICAL FIX: Include author field for pending entries
       notes: entryData.notes || '',
       coverurl: metadata.coverURL || '',
       metadata: JSON.stringify(metadata),
       status: 'pending',
       tags: entryData.tags || '',
       hyperating: entryData.hypeRating || ''
-      // Author is intentionally omitted for pending items unless specified
     };
     
     const rowData = headers.map(header => entryMap[header.toLowerCase()] || '');
