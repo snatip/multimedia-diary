@@ -970,6 +970,141 @@
         background-color: var(--bg-tertiary); /* Add this line */
       }
 
+      /* Cover options overlay */
+      .cover-options {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-sm);
+        opacity: 0;
+        visibility: hidden;
+        transition: all var(--transition-normal);
+        backdrop-filter: blur(4px);
+      }
+
+      .card-cover:hover .cover-options {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .cover-option-btn {
+        background: var(--accent-primary);
+        color: white;
+        border: none;
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: all var(--transition-fast);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+        min-width: 140px;
+        justify-content: center;
+      }
+
+      .cover-option-btn:hover {
+        background: var(--accent-secondary);
+        transform: translateY(-2px);
+      }
+
+      .cover-option-btn.fallback {
+        background: var(--accent-warning);
+      }
+
+      .cover-option-btn.fallback:hover {
+        background: #eab308;
+      }
+
+      .cover-option-btn.refresh {
+        background: var(--accent-success);
+      }
+
+      .cover-option-btn.refresh:hover {
+        background: #059669;
+      }
+
+      .cover-option-hint {
+        position: absolute;
+        top: var(--spacing-xs);
+        right: var(--spacing-xs);
+        background: rgba(0, 0, 0, 0.6);
+        color: var(--text-secondary);
+        font-size: 0.7rem;
+        padding: 2px 6px;
+        border-radius: var(--radius-sm);
+        opacity: 0.7;
+      }
+
+      /* Modal cover options */
+      .modal-cover-options {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-sm);
+        opacity: 0;
+        visibility: hidden;
+        transition: all var(--transition-normal);
+        backdrop-filter: blur(4px);
+        border-radius: 8px;
+      }
+
+      .modal-cover:hover .modal-cover-options {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .modal-cover .cover-option-btn {
+        background: var(--accent-primary);
+        color: white;
+        border: none;
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: all var(--transition-fast);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+        min-width: 140px;
+        justify-content: center;
+      }
+
+      .modal-cover .cover-option-btn:hover {
+        background: var(--accent-secondary);
+        transform: translateY(-2px);
+      }
+
+      .modal-cover .cover-option-btn.fallback {
+        background: var(--accent-warning);
+      }
+
+      .modal-cover .cover-option-btn.fallback:hover {
+        background: #eab308;
+      }
+
+      .modal-cover .cover-option-btn.refresh {
+        background: var(--accent-success);
+      }
+
+      .modal-cover .cover-option-btn.refresh:hover {
+        background: #059669;
+      }
+
       .cover-image {
         width: 100%;
         height: 100%;
@@ -3474,6 +3609,80 @@
         }
       }
 
+      /**
+       * Fallback to placeholder image for an entry
+       */
+      async function fallbackToPlaceholder(entryId) {
+        event.stopPropagation();
+        
+        const entry = currentEntries.find((e) => e.id === entryId);
+        if (!entry) return;
+
+        showToast("Generating placeholder image...", "info", 1500);
+
+        try {
+          const result = await new Promise((resolve, reject) => {
+            google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).fallbackToPlaceholder(entryId);
+          });
+
+          if (result.success) {
+            // Update the entry in the current entries array
+            entry.coverurl = result.coverURL;
+            
+            // Re-render the appropriate view based on entry status
+            if (entry.status === 'pending') {
+              renderPending();
+            } else {
+              renderOverview();
+            }
+            updateRoomCounts();
+            showToast("Placeholder image applied successfully!", "success");
+          } else {
+            throw new Error(result.error);
+          }
+        } catch (error) {
+          console.error("Error falling back to placeholder:", error);
+          showToast("Error: " + error.message, "error");
+        }
+      }
+
+      /**
+       * Request new cover for an entry (especially for books)
+       */
+      async function requestNewCover(entryId) {
+        event.stopPropagation();
+        
+        const entry = currentEntries.find((e) => e.id === entryId);
+        if (!entry) return;
+
+        showToast("Searching for alternative cover...", "info", 2000);
+
+        try {
+          const result = await new Promise((resolve, reject) => {
+            google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).requestNewCover(entryId);
+          });
+
+          if (result.success) {
+            // Update the entry in the current entries array
+            entry.coverurl = result.coverURL;
+            
+            // Re-render the appropriate view based on entry status
+            if (entry.status === 'pending') {
+              renderPending();
+            } else {
+              renderOverview();
+            }
+            updateRoomCounts();
+            showToast("New cover found and applied!", "success");
+          } else {
+            throw new Error(result.error);
+          }
+        } catch (error) {
+          console.error("Error requesting new cover:", error);
+          showToast("Error: " + error.message, "error");
+        }
+      }
+
       async function submitRating(isNotRated = false) {
         if (!ratingEntryId) return;
 
@@ -3821,7 +4030,21 @@
           <input type="hidden" id="editEntryId" value="${entry.id}">
           <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
             <div class="modal-cover view-mode">
-              <img src="${coverImage}" alt="${entry.title}" style="width: 200px; height: auto; border-radius: 8px; box-shadow: var(--shadow-lg);">
+              <div style="position: relative; display: inline-block;">
+                <img src="${coverImage}" alt="${entry.title}" style="width: 200px; height: auto; border-radius: 8px; box-shadow: var(--shadow-lg);">
+                <div class="modal-cover-options">
+                  <button class="cover-option-btn fallback" onclick="fallbackToPlaceholder('${entry.id}')" title="Use placeholder image">
+                    <i class="fas fa-image"></i>
+                    Use Placeholder
+                  </button>
+                  ${entry.type === 'book' ? `
+                    <button class="cover-option-btn refresh" onclick="requestNewCover('${entry.id}')" title="Get new cover from alternative sources">
+                      <i class="fas fa-refresh"></i>
+                      New Cover
+                    </button>
+                  ` : ''}
+                </div>
+              </div>
             </div>
             
             <div class="modal-info" style="flex: 1; min-width: 250px;">
@@ -4271,11 +4494,27 @@
 
       // Keyboard shortcuts
       function handleKeyboardShortcuts(e) {
+        // Allow browser function keys to work normally
+        if (e.key === 'F5' || e.key === 'F12' || (e.ctrlKey && e.key === 'r') || (e.ctrlKey && e.key === 'R')) {
+          return; // Don't prevent default behavior for refresh and dev tools
+        }
+
         // Ctrl/Cmd + K: Add new entry
         if ((e.ctrlKey || e.metaKey) && e.key === "k") {
           e.preventDefault();
           switchView("add");
           document.getElementById("title").focus();
+        }
+
+        // Ctrl/Cmd + Enter: Submit form (when in add entry view)
+        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+          // Check if we're in the add entry view and the form is visible
+          const addView = document.getElementById("add-view");
+          const addForm = document.getElementById("addEntryForm");
+          if (addView && addView.classList.contains("active") && addForm) {
+            e.preventDefault();
+            handleFormSubmission(e);
+          }
         }
 
         // Escape: Close modal
