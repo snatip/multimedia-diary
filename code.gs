@@ -200,19 +200,26 @@ function startPendingEntry(entryId) {
 }
 
 /**
- * Get all media entries from the sheet
+ * Get all media entries from the sheet - DEBUG VERSION
  */
 // In your Code.gs file
 function getAllEntries() {
   try {
+    console.log(`=== GET ALL ENTRIES DEBUG START ===`);
+    
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
     const data = sheet.getDataRange().getValues();
     
     if (data.length <= 1) {
+      console.log(`No data found - only headers or empty sheet`);
+      console.log(`=== GET ALL ENTRIES DEBUG END ===`);
       return []; // No data or only headers
     }
     
     const headers = data[0].map(header => header.toString().toLowerCase());
+    console.log(`Headers found:`, headers);
+    console.log(`Total rows: ${data.length}`);
+    
     const entries = [];
     
     for (let i = 1; i < data.length; i++) {
@@ -249,28 +256,46 @@ function getAllEntries() {
       
       // Set status based on data with improved logic for item types
       // Only recalculate if status is missing or empty, preserve existing status
+      console.log(`ENTRY ${i} - Status check:`);
+      console.log(`  Current status: '${entry.status}'`);
+      console.log(`  Has start date: ${!!entry.startdate}`);
+      console.log(`  Has finish date: ${!!entry.finishdate}`);
+      console.log(`  Rating: '${entry.rating}' (type: ${typeof entry.rating})`);
+      
       if (!entry.status || entry.status === '') {
+        console.log(`  Status is empty - calculating new status...`);
         if (!entry.startdate && !entry.finishdate) {
           // Type 1: No dates - check if has rating to determine if finished
           if (entry.rating && entry.rating !== 'N/A' && entry.rating !== '' && typeof entry.rating === 'number' && entry.rating > 0) {
             entry.status = 'completed-no-dates';
+            console.log(`  → Set to 'completed-no-dates' (has rating > 0)`);
           } else {
             entry.status = 'in-progress-no-dates';
+            console.log(`  → Set to 'in-progress-no-dates' (no rating or rating <= 0)`);
           }
         } else if (!entry.startdate && entry.finishdate) {
           // Type 2: Unknown start, known finish
           entry.status = 'completed';
+          console.log(`  → Set to 'completed' (has finish date)`);
         } else if (entry.startdate && !entry.finishdate) {
           // Type 3: In progress (has start, no finish)
           entry.status = 'in-progress';
+          console.log(`  → Set to 'in-progress' (has start date, no finish)`);
         } else if (entry.startdate && entry.finishdate) {
           // Type 4: Full date info
           entry.status = 'completed';
+          console.log(`  → Set to 'completed' (has both dates)`);
         } else {
           entry.status = 'in-progress-no-dates'; // fallback
+          console.log(`  → Set to 'in-progress-no-dates' (fallback)`);
         }
+      } else {
+        console.log(`  Status preserved: '${entry.status}'`);
       }
       // Important: If status already exists (including 'pending'), preserve it!
+      
+      console.log(`  Final status: '${entry.status}'`);
+      console.log(`  Final rating: '${entry.rating}'`);
       
       entries.push(entry);
     }
@@ -279,9 +304,16 @@ function getAllEntries() {
     // JavaScript can parse ISO strings back into dates for comparison.
     entries.sort((a, b) => new Date(b.createdat) - new Date(a.createdat));
     
+    console.log(`GET ALL ENTRIES - Final entries array:`);
+    entries.forEach((entry, index) => {
+      console.log(`  Entry ${index}: ID=${entry.id}, Status='${entry.status}', Rating='${entry.rating}'`);
+    });
+    console.log(`=== GET ALL ENTRIES DEBUG END ===`);
+    
     return entries;
   } catch (error) {
     console.error('Error in getAllEntries:', error);
+    console.log(`=== GET ALL ENTRIES DEBUG END (ERROR) ===`);
     return [];
   }
 }
@@ -314,17 +346,33 @@ function markEntryAsFinished(entryId) {
 }
 
 /**
- * Update an existing entry
+ * Update an existing entry - DEBUG VERSION
  */
 function updateEntry(entryId, updateData) {
   try {
+    console.log(`=== UPDATE ENTRY DEBUG START ===`);
+    console.log(`Entry ID: ${entryId}`);
+    console.log(`Update Data Received:`, updateData);
+    
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
     const data = sheet.getDataRange().getValues();
     const headers = data[0];
     
     for (let i = 1; i < data.length; i++) {
       if (data[i][0] === entryId) {
-        // Update specified fields
+        // SECURITY FIX: Log original state before any changes
+        const originalEntry = {};
+        headers.forEach((header, index) => {
+          originalEntry[header.toLowerCase()] = data[i][index];
+        });
+        
+        console.log(`ORIGINAL ENTRY STATE:`, originalEntry);
+        console.log(`Original status: '${originalEntry.status}'`);
+        console.log(`Original rating: '${originalEntry.rating}'`);
+        
+        console.log(`FIELDS TO UPDATE:`, Object.keys(updateData));
+        
+        // Update specified fields only
         Object.keys(updateData).forEach(field => {
           const headerIndex = headers.findIndex(h => 
             h.toLowerCase() === field.toLowerCase()
@@ -332,6 +380,12 @@ function updateEntry(entryId, updateData) {
           
           if (headerIndex !== -1) {
             let value = updateData[field];
+            const originalValue = data[i][headerIndex];
+            
+            console.log(`UPDATING FIELD: ${field}`);
+            console.log(`  Header index: ${headerIndex}`);
+            console.log(`  Original value: '${originalValue}'`);
+            console.log(`  New value: '${value}'`);
             
             // Handle date fields
             if (field.toLowerCase().includes('date') && value) {
@@ -350,13 +404,41 @@ function updateEntry(entryId, updateData) {
               }
             }
             
+            console.log(`  Final value to be saved: '${value}'`);
             sheet.getRange(i + 1, headerIndex + 1).setValue(value);
+          } else {
+            console.log(`FIELD NOT FOUND: ${field} - skipping`);
           }
         });
         
-        // Log the update for debugging
-        console.log(`Updated entry ${entryId} with status: ${updateData.status}`);
+        // Verify the actual state after update
+        const updatedData = sheet.getDataRange().getValues();
+        const updatedEntry = {};
+        for (let j = 1; j < updatedData.length; j++) {
+          if (updatedData[j][0] === entryId) {
+            headers.forEach((header, index) => {
+              updatedEntry[header.toLowerCase()] = updatedData[j][index];
+            });
+            break;
+          }
+        }
         
+        console.log(`UPDATED ENTRY STATE:`, updatedEntry);
+        console.log(`Updated status: '${updatedEntry.status}'`);
+        console.log(`Updated rating: '${updatedEntry.rating}'`);
+        
+        // Check for unauthorized changes
+        if (updatedEntry.status !== originalEntry.status) {
+          console.error(`🚨 UPDATE ENTRY: UNAUTHORIZED STATUS CHANGE DETECTED!`);
+          console.error(`Changed from: '${originalEntry.status}' to: '${updatedEntry.status}'`);
+        }
+        
+        if (updatedEntry.rating !== originalEntry.rating) {
+          console.error(`🚨 UPDATE ENTRY: UNAUTHORIZED RATING CHANGE DETECTED!`);
+          console.error(`Changed from: '${originalEntry.rating}' to: '${updatedEntry.rating}'`);
+        }
+        
+        console.log(`=== UPDATE ENTRY DEBUG END ===`);
         return { success: true, message: 'Entry updated successfully' };
       }
     }
@@ -364,6 +446,7 @@ function updateEntry(entryId, updateData) {
     throw new Error('Entry not found');
   } catch (error) {
     console.error('Error updating entry:', error);
+    console.log(`=== UPDATE ENTRY DEBUG END (ERROR) ===`);
     return { success: false, error: error.message };
   }
 }
@@ -458,34 +541,73 @@ function testSetup() {
 }
 
 /**
- * Request a new cover for an existing entry
+ * Request a new cover for an existing entry - DEBUG VERSION
  */
 function requestNewCover(entryId) {
   try {
+    console.log(`=== COVER UPDATE DEBUG START ===`);
+    console.log(`Entry ID: ${entryId}`);
+    
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
     const data = sheet.getDataRange().getValues();
     const headers = data[0];
     
     for (let i = 1; i < data.length; i++) {
       if (data[i][0] === entryId) {
-        // Get entry details and preserve original status
+        // Get entry details and preserve ALL original data
         const entry = {};
         headers.forEach((header, index) => {
           entry[header.toLowerCase()] = data[i][index];
         });
         
+        console.log(`ORIGINAL ENTRY STATE:`, entry);
+        console.log(`Original status: '${entry.status}'`);
+        console.log(`Original rating: '${entry.rating}'`);
+        
         // Fetch new metadata with alternative sources
         const newMetadata = fetchAlternativeMetadata(entry.title, entry.type);
         
-        // Use updateEntry to preserve all existing data including status
+        // CRITICAL FIX: Only update cover-related fields, preserve everything else
         const updateData = {
           coverurl: newMetadata.coverURL,
           metadata: JSON.stringify(newMetadata)
         };
         
+        console.log(`UPDATE DATA BEING SENT:`, updateData);
+        console.log(`updateData.status: ${updateData.status}`);
+        console.log(`updateData.rating: ${updateData.rating}`);
+        
         const result = updateEntry(entryId, updateData);
         
         if (result.success) {
+          // Verify the actual state after update
+          const updatedData = sheet.getDataRange().getValues();
+          const updatedEntry = {};
+          for (let j = 1; j < updatedData.length; j++) {
+            if (updatedData[j][0] === entryId) {
+              headers.forEach((header, index) => {
+                updatedEntry[header.toLowerCase()] = updatedData[j][index];
+              });
+              break;
+            }
+          }
+          
+          console.log(`UPDATED ENTRY STATE:`, updatedEntry);
+          console.log(`Updated status: '${updatedEntry.status}'`);
+          console.log(`Updated rating: '${updatedEntry.rating}'`);
+          
+          // Check for unauthorized changes
+          if (updatedEntry.status !== entry.status) {
+            console.error(`🚨 UNAUTHORIZED STATUS CHANGE DETECTED!`);
+            console.error(`Changed from: '${entry.status}' to: '${updatedEntry.status}'`);
+          }
+          
+          if (updatedEntry.rating !== entry.rating) {
+            console.error(`🚨 UNAUTHORIZED RATING CHANGE DETECTED!`);
+            console.error(`Changed from: '${entry.rating}' to: '${updatedEntry.rating}'`);
+          }
+          
+          console.log(`=== COVER UPDATE DEBUG END ===`);
           return { 
             success: true, 
             coverURL: newMetadata.coverURL,
@@ -500,6 +622,7 @@ function requestNewCover(entryId) {
     throw new Error('Entry not found');
   } catch (error) {
     console.error('Error requesting new cover:', error);
+    console.log(`=== COVER UPDATE DEBUG END (ERROR) ===`);
     return { success: false, error: error.message };
   }
 }
@@ -509,6 +632,9 @@ function requestNewCover(entryId) {
  */
 function fallbackToPlaceholder(entryId) {
   try {
+    console.log(`=== FALLBACK TO PLACEHOLDER DEBUG START ===`);
+    console.log(`Entry ID: ${entryId}`);
+    
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
     const data = sheet.getDataRange().getValues();
     const headers = data[0];
@@ -521,6 +647,10 @@ function fallbackToPlaceholder(entryId) {
           entry[header.toLowerCase()] = data[i][index];
         });
         
+        console.log(`ORIGINAL ENTRY STATE:`, entry);
+        console.log(`Original status: '${entry.status}'`);
+        console.log(`Original rating: '${entry.rating}'`);
+        
         // Generate placeholder URL
         const placeholderUrl = generateQualityPlaceholder(entry.title, entry.type);
         
@@ -529,9 +659,41 @@ function fallbackToPlaceholder(entryId) {
           coverurl: placeholderUrl
         };
         
+        console.log(`UPDATE DATA BEING SENT:`, updateData);
+        console.log(`updateData.status: ${updateData.status}`);
+        console.log(`updateData.rating: ${updateData.rating}`);
+        
         const result = updateEntry(entryId, updateData);
         
         if (result.success) {
+          // Verify the actual state after update
+          const updatedData = sheet.getDataRange().getValues();
+          const updatedEntry = {};
+          for (let j = 1; j < updatedData.length; j++) {
+            if (updatedData[j][0] === entryId) {
+              headers.forEach((header, index) => {
+                updatedEntry[header.toLowerCase()] = updatedData[j][index];
+              });
+              break;
+            }
+          }
+          
+          console.log(`UPDATED ENTRY STATE:`, updatedEntry);
+          console.log(`Updated status: '${updatedEntry.status}'`);
+          console.log(`Updated rating: '${updatedEntry.rating}'`);
+          
+          // Check for unauthorized changes
+          if (updatedEntry.status !== entry.status) {
+            console.error(`🚨 FALLBACK: UNAUTHORIZED STATUS CHANGE DETECTED!`);
+            console.error(`Changed from: '${entry.status}' to: '${updatedEntry.status}'`);
+          }
+          
+          if (updatedEntry.rating !== entry.rating) {
+            console.error(`🚨 FALLBACK: UNAUTHORIZED RATING CHANGE DETECTED!`);
+            console.error(`Changed from: '${entry.rating}' to: '${updatedEntry.rating}'`);
+          }
+          
+          console.log(`=== FALLBACK TO PLACEHOLDER DEBUG END ===`);
           return { 
             success: true, 
             coverURL: placeholderUrl,
@@ -546,6 +708,7 @@ function fallbackToPlaceholder(entryId) {
     throw new Error('Entry not found');
   } catch (error) {
     console.error('Error falling back to placeholder:', error);
+    console.log(`=== FALLBACK TO PLACEHOLDER DEBUG END (ERROR) ===`);
     return { success: false, error: error.message };
   }
 }
