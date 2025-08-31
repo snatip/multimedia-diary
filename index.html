@@ -855,6 +855,28 @@
         color: white;
       }
 
+      .sort-select {
+        padding: var(--spacing-sm) var(--spacing-md);
+        border: 1px solid var(--bg-tertiary);
+        background: var(--bg-secondary);
+        color: var(--text-secondary);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        font-size: 0.9rem;
+        outline: none;
+      }
+
+      .sort-select:hover {
+        border-color: var(--accent-primary);
+        color: var(--text-primary);
+      }
+
+      .sort-select:focus {
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+      }
+
       .timeline-container {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -2167,13 +2189,13 @@
             <i class="fas fa-home"></i>
             <span>Room</span>
           </button>
-          <button class="nav-btn" data-view="pending">
-            <i class="fas fa-clock"></i>
-            <span>Pending</span>
-          </button>
           <button class="nav-btn" data-view="overview">
             <i class="fas fa-list"></i>
             <span>Overview</span>
+          </button>
+          <button class="nav-btn" data-view="pending">
+            <i class="fas fa-clock"></i>
+            <span>Pending</span>
           </button>
           <button class="nav-btn" data-view="stats">
             <i class="fas fa-chart-bar"></i>
@@ -2202,13 +2224,13 @@
         <i class="fas fa-home"></i>
         <span>Room</span>
       </button>
-      <button class="nav-btn" data-view="pending">
-        <i class="fas fa-clock"></i>
-        <span>Pending</span>
-      </button>
       <button class="nav-btn" data-view="overview">
         <i class="fas fa-list"></i>
         <span>Overview</span>
+      </button>
+      <button class="nav-btn" data-view="pending">
+        <i class="fas fa-clock"></i>
+        <span>Pending</span>
       </button>
       <button class="nav-btn" data-view="stats">
         <i class="fas fa-chart-bar"></i>
@@ -2374,6 +2396,18 @@
               <button class="type-filter" data-type="series">Series</button>
               <button class="type-filter" data-type="book">Books</button>
               <button class="type-filter" data-type="paper">Papers</button>
+            </div>
+            <div class="filter-group">
+              <select id="overviewSort" class="sort-select">
+                <option value="created-desc">Recently Added</option>
+                <option value="created-asc">Oldest Added</option>
+                <option value="title-asc">Title (A-Z)</option>
+                <option value="title-desc">Title (Z-A)</option>
+                <option value="startdate-desc">Recently Started</option>
+                <option value="startdate-asc">Earliest Started</option>
+                <option value="finishdate-desc">Recently Finished</option>
+                <option value="finishdate-asc">Earliest Finished</option>
+              </select>
             </div>
           </div>
         </div>
@@ -2665,6 +2699,8 @@
         status: "all",
         type: "all",
       };
+
+      let overviewSort = "created-desc"; // Default sort: recently added
 
       let pendingFilters = {
         type: "all",
@@ -3198,8 +3234,37 @@
           return true;
         });
 
-        // Rest remains the same...
-        filteredEntries.sort((a, b) => new Date(b.createdat) - new Date(a.createdat));
+        // Apply sorting based on overviewSort
+        filteredEntries.sort((a, b) => {
+          switch (overviewSort) {
+            case "created-desc":
+              return new Date(b.createdat) - new Date(a.createdat);
+            case "created-asc":
+              return new Date(a.createdat) - new Date(b.createdat);
+            case "title-asc":
+              return a.title.localeCompare(b.title);
+            case "title-desc":
+              return b.title.localeCompare(a.title);
+            case "startdate-desc":
+              if (!a.startdate) return 1;
+              if (!b.startdate) return -1;
+              return new Date(b.startdate) - new Date(a.startdate);
+            case "startdate-asc":
+              if (!a.startdate) return 1;
+              if (!b.startdate) return -1;
+              return new Date(a.startdate) - new Date(b.startdate);
+            case "finishdate-desc":
+              if (!a.finishdate) return 1;
+              if (!b.finishdate) return -1;
+              return new Date(b.finishdate) - new Date(a.finishdate);
+            case "finishdate-asc":
+              if (!a.finishdate) return 1;
+              if (!b.finishdate) return -1;
+              return new Date(a.finishdate) - new Date(b.finishdate);
+            default:
+              return new Date(b.createdat) - new Date(a.createdat);
+          }
+        });
 
         if (filteredEntries.length === 0) {
           container.innerHTML = `
@@ -3256,8 +3321,14 @@
         if (isCompleted) {
           if (typeof entry.rating === "number" && entry.rating > 0) {
             ratingDisplay = `<span class="rating">${entry.rating} <i class="fas fa-star"></i></span>`;
-          } else if (entry.rating === "N/A") {
+          } else {
+            // For completed items without a valid rating, show "Not Rated"
             ratingDisplay = `<span class="rating" style="color: var(--text-muted); font-size: 0.8rem;">Not Rated</span>`;
+          }
+        } else {
+          // For in-progress items without a valid rating, show "Pending Rating"
+          if (typeof entry.rating === "number" && entry.rating > 0) {
+            ratingDisplay = `<span class="rating">${entry.rating} <i class="fas fa-star"></i></span>`;
           } else {
             ratingDisplay = `<span class="rating" style="color: var(--accent-warning); font-size: 0.8rem;">Pending Rating</span>`;
           }
@@ -3302,7 +3373,7 @@
         const color = colors[type] || "6b7280";
         const initials = title.substring(0, 2).toUpperCase();
 
-        return "https://placehold.jp/300x400/" + color + "/ffffff?text=" + encodeURIComponent(initials);
+        return "https://placehold.co/300x400/" + color + "/ffffff?text=" + encodeURIComponent(initials);
       }
 
       // Filter functions
@@ -3554,6 +3625,10 @@
         document.getElementById("ratingSection").style.display = "flex"; // Show by default
         updateRatingDisplay();
         updateFormBasedOnDates(); // Call this to set proper labels
+        
+        // Always hide author field after reset - it will only show when type is changed to "book"
+        document.getElementById("authorSection").style.display = "none";
+        
         clearFormFeedback();
       }
 
@@ -3855,13 +3930,10 @@
                                           ${"★".repeat(entry.rating)}${"☆".repeat(10 - entry.rating)}
                                         </div>
                                       </div>`;
-                        } else if (entry.rating === "N/A") {
+                        } else {
+                          // For completed items without a valid rating, show "Not Rated"
                           return `<div class="modal-rating">
                                         <p><strong>Rating:</strong> <span style="color: var(--text-muted);">Not Rated</span></p>
-                                      </div>`;
-                        } else {
-                          return `<div class="modal-rating">
-                                        <p><strong>Rating:</strong> <span style="color: var(--accent-warning);">Pending Rating</span></p>
                                       </div>`;
                         }
                       })()}
@@ -4067,7 +4139,7 @@
           type: document.getElementById("editType").value,
           startDate: document.getElementById("editStartDate").value || null,
           finishDate: document.getElementById("editFinishDate").value || null,
-          rating: parseInt(document.getElementById("editRating").value),
+          rating: document.getElementById("editRating").value === "0" ? "0" : parseInt(document.getElementById("editRating").value),
           notes: document.getElementById("editNotes").value,
           status: newStatus,
         };
@@ -4386,6 +4458,15 @@
         debounce(() => {
           if (currentView === "overview") renderOverview();
         }, 300)
+      );
+
+      // Overview sort dropdown event listener
+      document.getElementById("overviewSort").addEventListener(
+        "change",
+        () => {
+          overviewSort = document.getElementById("overviewSort").value;
+          if (currentView === "overview") renderOverview();
+        }
       );
 
       // Debounce utility
