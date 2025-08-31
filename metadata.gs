@@ -46,14 +46,20 @@ function fetchMetadata(title, type) {
  */
 function fetchBookMetadata(title) {
   try {
-    // AGREGAR ESTA LÍNEA CON TU API KEY REAL
-    const API_KEY = '';
+    // Get API key from script properties
+    const scriptProperties = PropertiesService.getScriptProperties();
+    const apiKey = scriptProperties.getProperty('GOOGLE_BOOKS_API_KEY');
+    
+    if (!apiKey) {
+      console.error('Google Books API key not found in script properties');
+      return getDefaultMetadata();
+    }
     
     const encodedTitle = encodeURIComponent(title);
     const userCountry = Session.getActiveUserLocale().split('_')[1] || 'ES';
 
-    // MODIFICAR ESTA LÍNEA PARA INCLUIR LA API KEY
-    const url = `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodedTitle}&maxResults=1&country=${userCountry}&key=${API_KEY}`;
+    // Use the API key from script properties
+    const url = `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodedTitle}&maxResults=3&country=${userCountry}&key=${apiKey}`;
     
     const response = UrlFetchApp.fetch(url, {
       method: 'GET',
@@ -65,27 +71,39 @@ function fetchBookMetadata(title) {
     const data = JSON.parse(response.getContentText());
     
     if (data.items && data.items.length > 0) {
-      const book = data.items[0].volumeInfo;
-      const rawCover =
-        book.imageLinks?.thumbnail?.replace('http:', 'https:') ||
-        book.imageLinks?.smallThumbnail?.replace('http:', 'https:') ||
-        '';
+      // Try to find the best match among multiple results
+      let bestMatch = null;
+      let bestScore = 0;
       
-      return {
-        coverURL: rawCover ? rawCover + '&fife=w800' : '',
-        additionalInfo: {
-          authors: book.authors || [],
-          publishedDate: book.publishedDate || '',
-          description: book.description || '',
-          categories: book.categories || [],
-          pageCount: book.pageCount || 0,
-          language: book.language || '',
-          publisher: book.publisher || '',
-          isbn: book.industryIdentifiers?.find(id => id.type === 'ISBN_13')?.identifier || ''
-        },
-        source: 'Google Books API',
-        fetchedAt: new Date().toISOString()
-      };
+      for (const item of data.items) {
+        const book = item.volumeInfo;
+        const score = calculateBookMatchScore(title, book);
+        
+        if (score > bestScore) {
+          bestScore = score;
+          bestMatch = book;
+        }
+      }
+      
+      if (bestMatch) {
+        const coverURL = getBestBookCover(bestMatch, title);
+        
+        return {
+          coverURL: coverURL,
+          additionalInfo: {
+            authors: bestMatch.authors || [],
+            publishedDate: bestMatch.publishedDate || '',
+            description: bestMatch.description || '',
+            categories: bestMatch.categories || [],
+            pageCount: bestMatch.pageCount || 0,
+            language: bestMatch.language || '',
+            publisher: bestMatch.publisher || '',
+            isbn: bestMatch.industryIdentifiers?.find(id => id.type === 'ISBN_13')?.identifier || ''
+          },
+          source: 'Google Books API',
+          fetchedAt: new Date().toISOString()
+        };
+      }
     }
   } catch (error) {
     console.error('Book metadata fetch error:', error);
@@ -95,20 +113,259 @@ function fetchBookMetadata(title) {
 }
 
 /**
+ * Calculate match score between search title and book title
+ */
+function calculateBookMatchScore(searchTitle, book) {
+  let score = 0;
+  
+  if (book.title) {
+    const searchLower = searchTitle.toLowerCase();
+    const bookLower = book.title.toLowerCase();
+    
+    // Exact match gets highest score
+    if (searchLower === bookLower) {
+      score += 100;
+    }
+    // Contains match
+    else if (bookLower.includes(searchLower) || searchLower.includes(bookLower)) {
+      score += 50;
+    }
+    // Partial word match
+    else {
+      const searchWords = searchLower.split(' ');
+      const bookWords = bookLower.split(' ');
+      const commonWords = searchWords.filter(word => bookWords.includes(word));
+      score += commonWords.length * 10;
+    }
+  }
+  
+  // Prefer books with covers
+  if (book.imageLinks && (book.imageLinks.thumbnail || book.imageLinks.extraLarge)) {
+    score += 20;
+  }
+  
+  // Prefer books with more metadata
+  if (book.authors && book.authors.length > 0) score += 5;
+  if (book.publisher) score += 3;
+  if (book.publishedDate) score += 2;
+  
+  return score;
+}
+
+/**
+ * Get the best possible book cover URL with fallbacks
+ */
+/**
+ * Get the best possible book cover URL with fallbacks
+ */
+function getBestBookCover(book, title) {
+  if (!book.imageLinks) {
+    return getFallbackBookCover(title);
+  }
+  
+  // Try different image sizes in order of preference
+  const imageUrls = [
+    book.imageLinks.extraLarge,
+    book.imageLinks.large,
+    book.imageLinks.medium,
+    book.imageLinks.thumbnail,
+    book.imageLinks.smallThumbnail
+  ].filter(Boolean);
+  
+  // First pass: Try to find a good Google Books cover
+  for (const url of imageUrls) {
+    const enhancedUrl = enhanceBookCoverUrl(url);
+    if (isGoodCoverImage(enhancedUrl)) {
+      return enhancedUrl;
+    }
+  }
+  
+  // Second pass: If no Google Books cover met the criteria, 
+  // try the largest available Google Books cover anyway (unless it's tiny)
+  const largestUrl = imageUrls[0]; // extraLarge or largest available
+  if (largestUrl) {
+    const enhancedUrl = enhanceBookCoverUrl(largestUrl);
+    // Check if it's not extremely small (less than 90px)
+    const hasDimensions = enhancedUrl.match(/w=(\d+)/);
+    if (!hasDimensions || parseInt(hasDimensions[1]) >= 90) {
+      return enhancedUrl;
+    }
+  }
+  
+  // Only fall back to Open Library if Google Books covers are extremely small or unavailable
+  return getFallbackBookCover(title);
+}
+
+/**
+ * Enhance Google Books cover URL for better quality
+ */
+function enhanceBookCoverUrl(originalUrl) {
+  let url = originalUrl.replace('http:', 'https:');
+  
+  // Remove existing zoom parameters
+  url = url.replace(/&zoom=\d+/, '');
+  
+  // Add zoom parameter if not present (zoom=5 is a good balance)
+  if (!url.includes('zoom=')) {
+    url += '&zoom=5';
+  }
+  
+  // Add higher quality parameters
+  if (!url.includes('fife')) {
+    url += '&fife=w800'; // Reduced from w1200 to w800 for better compatibility
+  }
+  
+  // Add edge parameter for better crispness
+  if (!url.includes('edge')) {
+    url += '&edge=curl';
+  }
+  
+  return url;
+}
+
+/**
+ * Check if a cover image URL is likely to be good quality
+ */
+/**
+ * Check if a cover image URL is likely to be good quality
+ */
+function isGoodCoverImage(url) {
+  // Check for known low-quality patterns
+  const lowQualityPatterns = [
+    'images.google.com',
+    'books.google.com/books/content' // Only specific low-quality Google pattern
+  ];
+  
+  const hasLowQualityPattern = lowQualityPatterns.some(pattern => url.includes(pattern));
+  
+  if (hasLowQualityPattern) {
+    // Check if it has reasonable dimensions in the URL
+    const hasGoodDimensions = url.match(/w=(\d+)/);
+    if (hasGoodDimensions) {
+      const width = parseInt(hasGoodDimensions[1]);
+      return width >= 180; // Reduced from 300px to 180px - more lenient
+    }
+    // If no dimensions specified, assume it's acceptable
+    return true;
+  }
+  
+  // For google.com/books/content URLs (which include most Google Books covers), be more lenient
+  if (url.includes('google.com/books/content')) {
+    const hasDimensions = url.match(/w=(\d+)/);
+    if (hasDimensions) {
+      const width = parseInt(hasDimensions[1]);
+      // Accept Google Books covers with 128px or more (reduced from 300px)
+      return width >= 128;
+    }
+    // If no dimensions specified, assume it's acceptable
+    return true;
+  }
+  
+  return true; // Accept all other URLs
+}
+
+/**
+ * Get fallback book cover from alternative services
+ */
+function getFallbackBookCover(title) {
+  // Try Open Library first
+  const openLibraryCover = getOpenLibraryCover(title);
+  if (openLibraryCover) {
+    return openLibraryCover;
+  }
+  
+  // Try other services or generate a placeholder
+  return generateQualityPlaceholder(title, 'book');
+}
+
+/**
+ * Get book cover from Open Library
+ */
+function getOpenLibraryCover(title) {
+  try {
+    // First, search for the book to get ISBN
+    const searchUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(title)}&limit=1`;
+    const response = UrlFetchApp.fetch(searchUrl, {
+      method: 'GET',
+      muteHttpExceptions: true
+    });
+    
+    if (response.getResponseCode() === 200) {
+      const data = JSON.parse(response.getContentText());
+      
+      if (data.docs && data.docs.length > 0) {
+        const book = data.docs[0];
+        let isbn = null;
+        
+        // Try to get ISBN-13 first, then ISBN-10
+        if (book.isbn_13 && book.isbn_13.length > 0) {
+          isbn = book.isbn_13[0];
+        } else if (book.isbn && book.isbn.length > 0) {
+          isbn = book.isbn[0];
+        }
+        
+        if (isbn) {
+          // Open Library cover URL
+          return `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg?default=false`;
+        }
+        
+        // Try using Open Library ID as fallback
+        if (book.cover_i) {
+          return `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg?default=false`;
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Open Library cover fetch error:', error);
+  }
+  
+  return null;
+}
+
+/**
+ * Generate a high-quality placeholder image
+ */
+function generateQualityPlaceholder(title, type) {
+  const colors = {
+    book: '#8B4513',
+    film: '#FF6B6B',
+    series: '#4ECDC4',
+    videogame: '#45B7D1',
+    paper: '#96CEB4'
+  };
+  
+  const color = colors[type.toLowerCase()] || '#95A5A6';
+  
+  // Use a better placeholder service that generates book-like covers
+  const encodedTitle = encodeURIComponent(title.substring(0, 30).toUpperCase());
+  
+  // Try multiple placeholder services in order of preference
+  const placeholderServices = [
+    `https://via.placeholder.com/300x450/${color.substring(1)}/FFFFFF?text=${encodedTitle}`,
+    `https://picsum.photos/seed/${encodeURIComponent(title)}/300/450.jpg`,
+    `https://source.unsplash.com/300x450/?book,cover&sig=${encodeURIComponent(title)}`
+  ];
+  
+  // Return the first placeholder service URL
+  return placeholderServices[0];
+}
+
+/**
  * Fetch movie metadata from OMDb API (requires free API key)
  */
 function fetchMovieMetadata(title) {
   try {
-    // Note: You'll need to get a free API key from http://www.omdbapi.com/
-    const API_KEY = ''; // Replace with your actual API key
+    // Get API key from script properties
+    const scriptProperties = PropertiesService.getScriptProperties();
+    const apiKey = scriptProperties.getProperty('OMDB_API_KEY');
     
-    if (API_KEY === 'YOUR_OMDB_API_KEY') {
-      console.log('OMDb API key not configured');
+    if (!apiKey) {
+      console.error('OMDb API key not found in script properties');
       return getDefaultMetadata();
     }
     
     const encodedTitle = encodeURIComponent(title);
-    const url = `http://www.omdbapi.com/?t=${encodedTitle}&type=movie&apikey=${API_KEY}`;
+    const url = `http://www.omdbapi.com/?t=${encodedTitle}&type=movie&apikey=${apiKey}`;
     
     const response = UrlFetchApp.fetch(url);
     const data = JSON.parse(response.getContentText());
@@ -143,15 +400,17 @@ function fetchMovieMetadata(title) {
  */
 function fetchTVMetadata(title) {
   try {
-    const API_KEY = ''; // Replace with your actual API key
+    // Get API key from script properties
+    const scriptProperties = PropertiesService.getScriptProperties();
+    const apiKey = scriptProperties.getProperty('OMDB_API_KEY');
     
-    if (API_KEY === 'YOUR_OMDB_API_KEY') {
-      console.log('OMDb API key not configured');
+    if (!apiKey) {
+      console.error('OMDb API key not found in script properties');
       return getDefaultMetadata();
     }
     
     const encodedTitle = encodeURIComponent(title);
-    const url = `http://www.omdbapi.com/?t=${encodedTitle}&type=series&apikey=${API_KEY}`;
+    const url = `http://www.omdbapi.com/?t=${encodedTitle}&type=series&apikey=${apiKey}`;
     
     const response = UrlFetchApp.fetch(url);
     const data = JSON.parse(response.getContentText());
@@ -186,16 +445,17 @@ function fetchTVMetadata(title) {
  */
 function fetchGameMetadata(title) {
   try {
-    // Note: You'll need a free API key from https://rawg.io/apidocs
-    const API_KEY = ''; // Replace with your actual API key
+    // Get API key from script properties
+    const scriptProperties = PropertiesService.getScriptProperties();
+    const apiKey = scriptProperties.getProperty('RAWG_API_KEY');
     
-    if (API_KEY === 'YOUR_RAWG_API_KEY') {
-      console.log('RAWG API key not configured');
+    if (!apiKey) {
+      console.error('RAWG API key not found in script properties');
       return getDefaultMetadata();
     }
     
     const encodedTitle = encodeURIComponent(title);
-    const url = `https://api.rawg.io/api/games?key=${API_KEY}&search=${encodedTitle}&page_size=1`;
+    const url = `https://api.rawg.io/api/games?key=${apiKey}&search=${encodedTitle}&page_size=1`;
     
     const response = UrlFetchApp.fetch(url);
     const data = JSON.parse(response.getContentText());
@@ -293,7 +553,7 @@ function getPlaceholderCover(type, title) {
   const encodedTitle = encodeURIComponent(title.substring(0, 2).toUpperCase());
   
   // Using a placeholder service (you might want to use a different one)
-  return `https://placehold.jp/300x450/${color.substring(1)}/FFFFFF?text=${encodedTitle}`;
+  return `https://placehold.co/300x450/${color.substring(1)}/FFFFFF?text=${encodedTitle}`;
 }
 
 /**
