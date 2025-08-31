@@ -668,6 +668,75 @@ function measurePerformance(functionName, func) {
 }
 
 /**
+ * Test function to verify cover update isolation
+ */
+function testCoverUpdateIsolation() {
+  try {
+    // 1. Create a pending entry
+    const pendingEntry = {
+      title: 'Test Book for Cover Update',
+      type: 'book',
+      status: 'pending'
+    };
+    
+    const addResult = addPendingEntry(pendingEntry);
+    if (!addResult.success) {
+      throw new Error('Failed to create test entry: ' + addResult.error);
+    }
+    
+    const entryId = addResult.id;
+    
+    // 2. Get the entry to verify initial state
+    const entries = getAllEntries();
+    const testEntry = entries.find(e => e.id === entryId);
+    
+    if (!testEntry) {
+      throw new Error('Test entry not found after creation');
+    }
+    
+    const originalStatus = testEntry.status;
+    const originalRating = testEntry.rating;
+    
+    console.log(`Initial state - Status: ${originalStatus}, Rating: ${originalRating}`);
+    
+    // 3. Request new cover
+    const coverResult = requestNewCover(entryId);
+    if (!coverResult.success) {
+      throw new Error('Cover update failed: ' + coverResult.error);
+    }
+    
+    // 4. Verify the entry state after cover update
+    const updatedEntries = getAllEntries();
+    const updatedEntry = updatedEntries.find(e => e.id === entryId);
+    
+    if (!updatedEntry) {
+      throw new Error('Updated entry not found');
+    }
+    
+    // 5. Assert that only cover-related fields changed
+    if (updatedEntry.status !== originalStatus) {
+      throw new Error(`STATUS CHANGE BUG: Status changed from ${originalStatus} to ${updatedEntry.status}`);
+    }
+    
+    if (updatedEntry.rating !== originalRating) {
+      throw new Error(`RATING CHANGE BUG: Rating changed from ${originalRating} to ${updatedEntry.rating}`);
+    }
+    
+    // 6. Clean up
+    deleteEntry(entryId);
+    
+    return { 
+      success: true, 
+      message: 'Cover update isolation test passed - only cover fields were modified'
+    };
+    
+  } catch (error) {
+    console.error('Cover update isolation test failed:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
  * Rate limiting helper
  */
 function checkRateLimit(operation, maxPerHour = 100) {
