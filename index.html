@@ -1768,6 +1768,9 @@
         align-items: center;
         gap: var(--spacing-sm);
         position: relative;
+        /* CRITICAL FIX: Set fixed width to prevent layout shifts */
+        width: 120px;
+        min-width: 120px;
       }
 
       .hype-rating-fire {
@@ -1775,12 +1778,17 @@
         display: inline-flex;
         align-items: center;
         gap: 2px;
+        /* CRITICAL FIX: Set fixed width for fire container */
+        width: 50px;
+        min-width: 50px;
+        justify-content: flex-end;
       }
 
       .hype-rating-fire::before {
         content: '🔥';
         position: absolute;
-        left: -20px;
+        /* CRITICAL FIX: Position from right edge to prevent container width changes */
+        right: 30px;
         top: 50%;
         transform: translateY(-50%);
         font-size: 1.2em;
@@ -1790,13 +1798,13 @@
 
       .hype-rating-fire.high-hype::before {
         content: '🔥🔥';
-        left: -35px;
+        right: 45px;
         animation: fireFlicker 1s ease-in-out infinite alternate, fireIntensity 2s ease-in-out infinite;
       }
 
       .hype-rating-fire.max-hype::before {
         content: '🔥🔥🔥';
-        left: -50px;
+        right: 60px;
         animation: fireFlicker 0.8s ease-in-out infinite alternate, fireIntensity 1.5s ease-in-out infinite, firePulse 1s ease-in-out infinite;
       }
 
@@ -1807,7 +1815,9 @@
         padding: var(--spacing-sm) var(--spacing-md);
         border-radius: var(--radius-md);
         font-weight: 700;
-        min-width: 45px;
+        /* CRITICAL FIX: Set fixed width for rating value to prevent layout shifts */
+        width: 50px;
+        min-width: 50px;
         text-align: center;
         border: 2px solid rgba(255, 94, 0, 0.3);
         box-shadow: 
@@ -2859,6 +2869,15 @@
               </div>
             </div>
 
+            <!-- CRITICAL FIX: Make author section full width (not in form-row) -->
+            <div class="form-group" id="authorSectionFullWidth" style="display: none;">
+              <label for="authorFullWidth">
+                <i class="fas fa-user-edit"></i>
+                Author
+              </label>
+              <input type="text" id="authorFullWidth" placeholder="e.g., J.R.R. Tolkien" />
+            </div>
+
             <div class="form-row">
               <div class="form-group">
                 <label for="startDate">
@@ -2954,69 +2973,80 @@
               </div>
             </div>
 
-            <div class="form-row">
-              <div class="form-group">
-                <label for="pendingTags">
-                  <i class="fas fa-tag"></i>
-                  Tags
-                </label>
-                <input type="text" id="pendingTags" placeholder="sci-fi, thriller, recommended (comma separated)" />
-                <small>Use commas to separate multiple tags</small>
-              </div>
-              <div class="form-group">
-                <label for="pendingHype">
-                  <i class="fas fa-fire"></i>
-                  Hype Rating (1-10)
-                </label>
-                <div class="hype-rating-container">
-                  <input type="range" id="pendingHype" min="1" max="10" value="7" />
-                  <div style="
+            <!-- CRITICAL FIX: Add author field for books - initially hidden -->
+            <div class="form-group" id="pendingAuthorSection" style="display: none;">
+              <label for="pendingAuthor">
+                <i class="fas fa-user-edit"></i>
+                Author
+              </label>
+              <input type="text" id="pendingAuthor" placeholder="e.g., J.R.R. Tolkien" />
+              <small>Enter the author name for books</small>
+            </div>
+
+            <!-- CRITICAL FIX: Make tags section full width (not in form-row) -->
+            <div class="form-group">
+              <label for="pendingTags">
+                <i class="fas fa-tag"></i>
+                Tags
+              </label>
+              <input type="text" id="pendingTags" placeholder="sci-fi, thriller, recommended (comma separated)" />
+              <small>Use commas to separate multiple tags</small>
+            </div>
+
+            <!-- CRITICAL FIX: Move hype rating to its own form-group (no form-row) to match 'Add started item' -->
+            <div class="form-group">
+              <label for="pendingHype">
+                <i class="fas fa-fire"></i>
+                Hype Rating (1-10)
+              </label>
+              <div class="rating-container">
+                <input type="range" id="pendingHype" min="1" max="10" value="7" />
+                <div style="
+                  display: flex;
+                  align-items: center;
+                  gap: 4px;
+                  position: relative;
+                " id="pendingHypeFire">
+                  <!-- Fire emojis positioned properly -->
+                  <span style="
+                    position: relative;
                     display: flex;
                     align-items: center;
-                    gap: 4px;
+                    gap: 2px;
+                    margin-right: 4px;
+                  ">
+                    <span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate;">🔥</span>
+                    <span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate 0.2s;">🔥</span>
+                  </span>
+                  
+                  <!-- Orange rating box with contained shine effect -->
+                  <span style="
+                    background: linear-gradient(135deg, #ff6200, #ff9500, #ff6200);
+                    background-size: 200% 200%;
+                    color: white;
+                    padding: 4px 8px;
+                    border-radius: 6px;
+                    font-weight: 700;
+                    font-size: 12px;
+                    min-width: 40px;
+                    text-align: center;
+                    border: 2px solid rgba(255, 94, 0, 0.3);
+                    box-shadow: 0 0 15px rgba(255, 94, 0, 0.4);
+                    animation: hypeGlow 3s ease-in-out infinite alternate;
                     position: relative;
-                  " id="pendingHypeFire">
-                    <!-- Fire emojis positioned properly -->
+                    overflow: hidden;
+                  " id="pendingHypeValue">7/10
+                    <!-- Contained shine effect -->
                     <span style="
-                      position: relative;
-                      display: flex;
-                      align-items: center;
-                      gap: 2px;
-                      margin-right: 4px;
-                    ">
-                      <span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate;">🔥</span>
-                      <span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate 0.2s;">🔥</span>
-                    </span>
-                    
-                    <!-- Orange rating box with contained shine effect -->
-                    <span style="
-                      background: linear-gradient(135deg, #ff6200, #ff9500, #ff6200);
-                      background-size: 200% 200%;
-                      color: white;
-                      padding: 4px 8px;
-                      border-radius: 6px;
-                      font-weight: 700;
-                      font-size: 12px;
-                      min-width: 40px;
-                      text-align: center;
-                      border: 2px solid rgba(255, 94, 0, 0.3);
-                      box-shadow: 0 0 15px rgba(255, 94, 0, 0.4);
-                      animation: hypeGlow 3s ease-in-out infinite alternate;
-                      position: relative;
-                      overflow: hidden;
-                    " id="pendingHypeValue">7/10
-                      <!-- Contained shine effect -->
-                      <span style="
-                        position: absolute;
-                        top: 0;
-                        left: -100%;
-                        width: 100%;
-                        height: 100%;
-                        background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.4) 50%, transparent 70%);
-                        animation: hypeShine 4s ease-in-out infinite;
-                      "></span>
-                    </span>
-                  </div>
+                      position: absolute;
+                      top: 0;
+                      left: -100%;
+                      width: 100%;
+                      height: 100%;
+                      background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.4) 50%, transparent 70%);
+                      animation: hypeShine 4s ease-in-out infinite;
+                    "></span>
+                  </span>
                 </div>
               </div>
             </div>
@@ -3191,7 +3221,15 @@
 
         // Show author field only for books
         document.getElementById("type").addEventListener("change", (e) => {
-          document.getElementById("authorSection").style.display = e.target.value === "book" ? "block" : "none";
+          const isBook = e.target.value === "book";
+          // Hide both author sections first
+          document.getElementById("authorSection").style.display = "none";
+          document.getElementById("authorSectionFullWidth").style.display = "none";
+          
+          // Show the appropriate author section
+          if (isBook) {
+            document.getElementById("authorSectionFullWidth").style.display = "flex";
+          }
         });
 
         // Make sure this gets called on page load too
@@ -3468,8 +3506,8 @@
         
         console.log(`Total entries: ${currentEntries.length}`);
         console.log(`Pending entries found: ${pendingEntries.length}`);
-        console.log(`Current entries before filtering:`, currentEntries.map(e => ({id: e.id, status: e.status, rating: e.rating})));
-        console.log(`Pending entries after filtering:`, pendingEntries.map(e => ({id: e.id, status: e.status, rating: e.rating})));
+        console.log(`Current entries before filtering:`, currentEntries.map(e => ({id: e.id, status: e.status, hyperating: e.hyperating})));
+        console.log(`Pending entries after filtering:`, pendingEntries.map(e => ({id: e.id, status: e.status, hyperating: e.hyperating})));
 
         // Apply search filter
         const searchInput = document.getElementById("pendingSearch");
@@ -4134,7 +4172,7 @@
         const formData = {
           title: document.getElementById("title").value.trim(),
           type: document.getElementById("type").value,
-          author: document.getElementById("author").value.trim(),
+          author: document.getElementById("authorFullWidth").value.trim(),
           startDate: document.getElementById("startDate").value,
           finishDate: finishDateValue,
           rating: finishDateValue ? parseInt(document.getElementById("rating").value) : null,
@@ -4201,6 +4239,7 @@
         
         // Always hide author field after reset - it will only show when type is changed to "book"
         document.getElementById("authorSection").style.display = "none";
+        document.getElementById("authorSectionFullWidth").style.display = "none";
         
         clearFormFeedback();
       }
@@ -4370,6 +4409,18 @@
 
       // Modal functions
       function openEntryModal(entry) {
+        console.log(`=== OPEN ENTRY MODAL DEBUG ===`);
+        console.log(`Entry received:`, entry);
+        console.log(`Entry object keys:`, Object.keys(entry));
+        console.log(`Entry.hyperating:`, entry.hyperating);
+        
+        // Check all possible hype rating field names
+        Object.keys(entry).forEach(key => {
+          if (key.toLowerCase().includes('hype')) {
+            console.log(`Found hype-related field: ${key} = ${entry[key]}`);
+          }
+        });
+        
         currentEntryId = entry.id;
         const modal = document.getElementById("entryModal");
         const modalBody = document.getElementById("modalBody");
@@ -4385,7 +4436,13 @@
         const metadata = typeof entry.metadata === "string" ? JSON.parse(entry.metadata || "{}") : entry.metadata || {};
 
         const ratingValue = entry.rating || 5;
+        
+        // CRITICAL FIX: Use correct field name based on debugging output
         const hypeRatingValue = entry.hyperating || 7;
+        
+        console.log(`=== HYPE RATING DEBUG ===`);
+        console.log(`entry.hyperating: ${entry.hyperating}`);
+        console.log(`hypeRatingValue being used: ${hypeRatingValue}`);
 
         // Helper to format date for input fields
         const formatDateForInput = (dateString) => (dateString ? new Date(dateString).toISOString().split("T")[0] : "");
@@ -4599,13 +4656,9 @@
                   </div>
                    <div class="form-group edit-mode">
                         <label for="editHypeRating">Hype Rating (1-10)</label>
-                        <div style="
-                          display: flex;
-                          align-items: center;
-                          gap: 12px;
-                          margin-top: 8px;
-                        ">
-                          <input type="range" id="editHypeRating" min="1" max="10" value="${hypeRatingValue}" style="flex: 1;">
+                        <!-- CRITICAL FIX: Use rating-container for consistency with other bars -->
+                        <div class="rating-container">
+                          <input type="range" id="editHypeRating" min="1" max="10" value="${hypeRatingValue}">
                           
                           <div style="
                             display: flex;
@@ -4656,7 +4709,7 @@
                             </span>
                           </div>
                         </div>
-                  </div>
+                      </div>
               </div>
               
               <!-- Notes -->
@@ -4859,6 +4912,12 @@
         console.log(`Event target:`, event.target);
         console.log(`Event submitter:`, event.submitter);
         
+        // CRITICAL FIX: Add loading state to save button
+        const submitButton = event.submitter;
+        const originalButtonText = submitButton.innerHTML;
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        
         // Check if this is a legitimate save attempt
         const submitter = event.submitter;
         if (submitter && (submitter.classList.contains('cover-option-btn') || 
@@ -4884,19 +4943,40 @@
         console.log(`Original status: '${entry.status}'`);
         console.log(`Original rating: '${entry.rating}'`);
 
-        // Determine new status based on dates and rating
-        const newStatus = updateEditModeStatus();
-        console.log(`Calculated newStatus: '${newStatus}'`);
+        // CRITICAL FIX: Preserve pending status unless explicitly changed
+        let newStatus;
+        if (entry.status === "pending") {
+          // Keep pending entries as pending unless dates are set
+          const startDate = document.getElementById("editStartDate").value;
+          const finishDate = document.getElementById("editFinishDate").value;
+          if (startDate || finishDate) {
+            // User has set dates - calculate appropriate status
+            newStatus = updateEditModeStatus();
+            console.log(`Pending entry with dates set - calculating new status: '${newStatus}'`);
+          } else {
+            // No dates set - keep as pending
+            newStatus = "pending";
+            console.log(`Pending entry with no dates - keeping status as 'pending'`);
+          }
+        } else {
+          // Non-pending entry - use normal status calculation
+          newStatus = updateEditModeStatus();
+          console.log(`Non-pending entry - calculating new status: '${newStatus}'`);
+        }
 
         const updateData = {
           title: document.getElementById("editTitle").value,
           type: document.getElementById("editType").value,
           startDate: document.getElementById("editStartDate").value || null,
           finishDate: document.getElementById("editFinishDate").value || null,
-          rating: document.getElementById("editRating").value === "0" ? "0" : parseInt(document.getElementById("editRating").value),
           notes: document.getElementById("editNotes").value,
           status: newStatus,
         };
+
+        // CRITICAL FIX: Only include rating for non-pending entries
+        if (entry.status !== "pending") {
+          updateData.rating = document.getElementById("editRating").value === "0" ? "0" : parseInt(document.getElementById("editRating").value);
+        }
 
         console.log(`Initial updateData:`, updateData);
 
@@ -4907,8 +4987,9 @@
         }
 
         // Handle status updates for no-dates items based on rating AND current status
-        if (!updateData.startDate && !updateData.finishDate) {
-          console.log(`No dates detected - applying rating-based status logic...`);
+        // CRITICAL FIX: Skip this logic for pending entries
+        if (entry.status !== "pending" && !updateData.startDate && !updateData.finishDate) {
+          console.log(`No dates detected on non-pending entry - applying rating-based status logic...`);
           // Keep the item as completed-no-dates if it already is, regardless of rating
           if (entry.status === "completed-no-dates") {
             updateData.status = "completed-no-dates";
@@ -4920,17 +5001,38 @@
             updateData.status = "in-progress-no-dates";
             console.log(`→ Setting to in-progress-no-dates (no rating or rating = 0)`);
           }
+        } else if (entry.status === "pending") {
+          console.log(`Pending entry detected - preserving pending status`);
+          updateData.status = "pending";
         }
 
         // Add pending-specific fields if it was a pending item
         const tagsField = document.getElementById("editTags");
         const hypeRatingField = document.getElementById("editHypeRating");
         if (tagsField) updateData.tags = tagsField.value;
-        if (hypeRatingField) updateData.hypeRating = parseInt(hypeRatingField.value);
+        
+        // CRITICAL DEBUGGING: Log hype rating field details
+        console.log(`=== DEBUGGING HYPE RATING ===`);
+        console.log(`hypeRatingField element:`, hypeRatingField);
+        console.log(`hypeRatingField exists: ${!!hypeRatingField}`);
+        if (hypeRatingField) {
+          console.log(`hypeRatingField.value: '${hypeRatingField.value}'`);
+          console.log(`hypeRatingField.type: '${hypeRatingField.type}'`);
+          console.log(`parseInt(hypeRatingField.value): ${parseInt(hypeRatingField.value)}`);
+        }
+        
+        if (hypeRatingField) {
+          const hypeRatingValue = parseInt(hypeRatingField.value);
+          updateData.hyperating = hypeRatingValue; // CRITICAL FIX: Use correct field name
+          console.log(`Setting hyperating to: ${hypeRatingValue}`);
+        } else {
+          console.log(`WARNING: hypeRatingField not found! hyperating will not be set.`);
+        }
 
         console.log(`Final updateData being sent:`, updateData);
         console.log(`Original status: '${entry.status}' → Final status: '${updateData.status}'`);
         console.log(`Original rating: '${entry.rating}' → Final rating: '${updateData.rating}'`);
+        console.log(`Original hyperating: '${entry.hyperating}' → Final hyperating: '${updateData.hyperating}'`);
 
         try {
           const result = await new Promise((resolve, reject) => {
@@ -4938,16 +5040,54 @@
           });
 
           if (result.success) {
-            // Update local data
-            Object.assign(entry, updateData);
-            entry.status = newStatus;
+            // CRITICAL FIX: Update local data properly for pending entries
+            if (entry.status === "pending") {
+              // For pending entries, preserve the pending status and update only the hype rating
+              const oldHyperating = entry.hyperating;
+              entry.hyperating = updateData.hyperating;
+              entry.status = "pending"; // Ensure status remains pending
+              
+              // CRITICAL FIX: Also update the entry in currentEntries array
+              const entryInCurrentEntries = currentEntries.find(e => e.id === entry.id);
+              if (entryInCurrentEntries) {
+                entryInCurrentEntries.hyperating = updateData.hyperating;
+                entryInCurrentEntries.status = "pending";
+              }
+              
+              console.log(`=== PENDING ENTRY UPDATE DEBUG ===`);
+              console.log(`Updated pending entry hyperating from ${oldHyperating} to: ${updateData.hyperating}`);
+              console.log(`Entry after update:`, entry);
+              console.log(`Entry.hyperating: ${entry.hyperating}`);
+              console.log(`Entry.status: ${entry.status}`);
+              
+              // Verify the entry is still in currentEntries array
+              console.log(`Entry found in currentEntries:`, !!entryInCurrentEntries);
+              if (entryInCurrentEntries) {
+                console.log(`Entry in array hyperating: ${entryInCurrentEntries.hyperating}`);
+              }
+            } else {
+              // For non-pending entries, use normal update logic
+              Object.assign(entry, updateData);
+              entry.status = newStatus;
+              
+              // Also update in currentEntries array for consistency
+              const entryInCurrentEntries = currentEntries.find(e => e.id === entry.id);
+              if (entryInCurrentEntries) {
+                Object.assign(entryInCurrentEntries, updateData);
+                entryInCurrentEntries.status = newStatus;
+              }
+            }
 
             toggleEntryEdit(false);
             closeModal();
 
             // Refresh the current view
+            console.log(`About to refresh views. currentView: ${currentView}`);
             if (currentView === "overview") renderOverview();
-            if (currentView === "pending") renderPending();
+            if (currentView === "pending") {
+              console.log(`Calling renderPending()...`);
+              renderPending();
+            }
             updateRoomCounts();
 
             showToast("Entry updated successfully", "success");
@@ -4959,6 +5099,10 @@
           console.error("Error updating entry:", error);
           console.log(`=== SAVE ENTRY CHANGES DEBUG END (ERROR) ===`);
           showToast("Error: " + error.message, "error");
+        } finally {
+          // CRITICAL FIX: Always restore button state
+          submitButton.disabled = false;
+          submitButton.innerHTML = originalButtonText;
         }
       }
 
@@ -5181,6 +5325,12 @@
           notes: document.getElementById("pendingNotes").value.trim(),
         };
 
+        // CRITICAL FIX: Add author field for books
+        const authorField = document.getElementById("pendingAuthor");
+        if (authorField && authorField.value.trim()) {
+          formData.author = authorField.value.trim();
+        }
+
         if (!formData.title || !formData.type) {
           showFormFeedback("Please fill in title and type", "error");
           return;
@@ -5218,6 +5368,12 @@
         document.getElementById("addPendingForm").reset();
         document.getElementById("pendingHype").value = 7;
         document.getElementById("pendingHypeValue").textContent = 7;
+        
+        // CRITICAL FIX: Hide author field when resetting form
+        const authorSection = document.getElementById("pendingAuthorSection");
+        if (authorSection) {
+          authorSection.style.display = "none";
+        }
       }
 
       // Update pending hype rating display
@@ -5267,6 +5423,27 @@
       document.getElementById("pendingHype").addEventListener("change", (e) => {
         e.preventDefault();
         e.stopPropagation();
+      });
+
+      // CRITICAL FIX: Show/hide author field based on media type
+      document.getElementById("pendingType").addEventListener("change", (e) => {
+        const selectedType = e.target.value;
+        const authorSection = document.getElementById("pendingAuthorSection");
+        
+        if (selectedType === "book") {
+          // Show author field for books
+          authorSection.style.display = "flex";
+          console.log("Showing author field for book type");
+        } else {
+          // Hide author field for other types
+          authorSection.style.display = "none";
+          // Clear author field when hiding
+          const authorField = document.getElementById("pendingAuthor");
+          if (authorField) {
+            authorField.value = "";
+          }
+          console.log("Hiding author field for non-book type:", selectedType);
+        }
       });
 
       // Search functionality
