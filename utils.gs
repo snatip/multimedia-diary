@@ -1508,3 +1508,371 @@ function getComprehensiveStats() {
     return null;
   }
 }
+
+/**
+ * Batch refresh metadata for all entries or specific entries
+ * @param {Array<string>} [entryIds] - Optional array of entry IDs to refresh. If not provided, refreshes all entries.
+ * @returns {Object} - Result object with success count, error count, and details
+ */
+function batchRefreshMetadata(entryIds) {
+  try {
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
+    const data = sheet.getDataRange().getValues();
+    
+    if (data.length <= 1) {
+      return { 
+        success: true, 
+        refreshed: 0, 
+        errors: 0, 
+        details: [],
+        message: 'No entries to refresh' 
+      };
+    }
+    
+    const headers = data[0];
+    const results = {
+      refreshed: 0,
+      errors: 0,
+      details: []
+    };
+    
+    // Determine which entries to process
+    const entriesToProcess = entryIds ? entryIds : null;
+    
+    for (let i = 1; i < data.length; i++) {
+      const entryId = data[i][0];
+      
+      // Skip if entryIds is provided and this entry is not in the list
+      if (entriesToProcess && !entriesToProcess.includes(entryId)) {
+        continue;
+      }
+      
+      try {
+        // Get entry data
+        const entry = {};
+        headers.forEach((header, index) => {
+          entry[header.toLowerCase()] = data[i][index];
+        });
+        
+        // Skip if no title or type
+        if (!entry.title || !entry.type) {
+          results.details.push({
+            entryId: entryId,
+            title: entry.title || 'Unknown',
+            error: 'Missing title or type'
+          });
+          results.errors++;
+          continue;
+        }
+        
+        // Fetch fresh metadata
+        const newMetadata = fetchMetadata(entry.title, entry.type);
+        
+        // Prepare update data
+        const updateData = {
+          coverurl: newMetadata.coverURL,
+          metadata: JSON.stringify(newMetadata)
+        };
+        
+        // Update the entry
+        const updateResult = updateEntry(entryId, updateData);
+        
+        if (updateResult.success) {
+          results.refreshed++;
+          results.details.push({
+            entryId: entryId,
+            title: entry.title,
+            success: true,
+            message: 'Metadata refreshed successfully'
+          });
+        } else {
+          results.errors++;
+          results.details.push({
+            entryId: entryId,
+            title: entry.title,
+            error: updateResult.error || 'Update failed'
+          });
+        }
+        
+      } catch (error) {
+        results.errors++;
+        results.details.push({
+          entryId: entryId,
+          title: data[i][headers.indexOf('Title')] || 'Unknown',
+          error: error.message
+        });
+      }
+    }
+    
+    // Log the batch refresh operation
+    logUserAction('batch_metadata_refresh', {
+      totalProcessed: results.refreshed + results.errors,
+      refreshed: results.refreshed,
+      errors: results.errors,
+      specificEntries: !!entryIds
+    });
+    
+    return {
+      success: true,
+      refreshed: results.refreshed,
+      errors: results.errors,
+      details: results.details,
+      message: `Batch refresh completed: ${results.refreshed} refreshed, ${results.errors} errors`
+    };
+    
+  } catch (error) {
+    console.error('Error in batch refresh metadata:', error);
+    return {
+      success: false,
+      refreshed: 0,
+      errors: 1,
+      details: [{
+        error: error.message
+      }],
+      message: `Batch refresh failed: ${error.message}`
+    };
+  }
+}
+
+/**
+ * Get entries that need metadata refresh (e.g., old metadata or missing covers)
+ * @returns {Array<string>} - Array of entry IDs that need metadata refresh
+ */
+function getEntriesNeedingRefresh() {
+  try {
+    const entries = getAllEntries();
+    const needingRefresh = [];
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    entries.forEach(entry => {
+      let needsRefresh = false;
+      
+      // Check if metadata is missing or invalid
+      if (!entry.metadata || entry.metadata === '{}') {
+        needsRefresh = true;
+      }
+      
+      // Check if cover URL is missing
+      if (!entry.coverurl || entry.coverurl === '') {
+        needsRefresh = true;
+      }
+      
+      // Check if metadata is old (older than 30 days)
+      if (entry.metadata && entry.metadata !== '{}') {
+        try {
+          const metadata = typeof entry.metadata === 'string' ? JSON.parse(entry.metadata) : entry.metadata;
+          if (metadata.fetchedAt) {
+            const fetchedDate = new Date(metadata.fetchedAt);
+            if (fetchedDate < thirtyDaysAgo) {
+              needsRefresh = true;
+            }
+          }
+        } catch (e) {
+          needsRefresh = true;
+        }
+      }
+      
+      if (needsRefresh) {
+        needingRefresh.push(entry.id);
+      }
+    });
+    
+    return needingRefresh;
+  } catch (error) {
+    console.error('Error getting entries needing refresh:', error);
+    return [];
+  }
+}
+
+/**
+ * Get books with low-quality covers that need improvement
+ * @returns {Array<Object>} - Array of book entries with poor quality covers
+ */
+function getBooksWithLowQualityCovers() {
+  try {
+    const entries = getAllEntries();
+    const lowQualityBooks = [];
+    
+    entries.forEach(entry => {
+      if (entry.type === 'book' && entry.coverurl) {
+        const isLowQuality = isLowQualityCover(entry.coverurl);
+        if (isLowQuality) {
+          lowQualityBooks.push({
+            id: entry.id,
+            title: entry.title,
+            currentCover: entry.coverurl,
+            author: entry.author || '',
+            reason: getLowQualityReason(entry.coverurl)
+          });
+        }
+      }
+    });
+    
+    return lowQualityBooks;
+  } catch (error) {
+    console.error('Error getting books with low quality covers:', error);
+    return [];
+  }
+}
+
+/**
+ * Check if a cover URL is likely to be low quality
+ * @param {string} coverUrl - The cover URL to check
+ * @returns {boolean} - True if the cover is likely low quality
+ */
+function isLowQualityCover(coverUrl) {
+  if (!coverUrl || coverUrl === '') {
+    return true; // No cover is considered low quality
+  }
+  
+  // Check for known low-quality indicators
+  const lowQualityIndicators = [
+    // Only specific low-quality Google Books patterns
+    'books.google.com/books/content', // Only the lowest quality Google pattern
+    'zoom=1', // Very low zoom level
+    'w=90',   // Very small width (under 100px)
+    // Placeholder patterns
+    'via.placeholder.com',
+    'placehold.co',
+    'dummyimage.com'
+  ];
+  
+  return lowQualityIndicators.some(indicator => 
+    coverUrl.toLowerCase().includes(indicator.toLowerCase())
+  );
+}
+
+/**
+ * Get the reason why a cover is considered low quality
+ * @param {string} coverUrl - The cover URL to analyze
+ * @returns {string} - Reason for low quality
+ */
+function getLowQualityReason(coverUrl) {
+  if (!coverUrl || coverUrl === '') {
+    return 'No cover available';
+  }
+  
+  const lowerUrl = coverUrl.toLowerCase();
+  
+  if (lowerUrl.includes('zoom=1')) {
+    return 'Very low resolution zoom level';
+  }
+  
+  if (lowerUrl.includes('w=90')) {
+    return 'Very small image dimensions (under 100px)';
+  }
+  
+  if (lowerUrl.includes('via.placeholder.com') || lowerUrl.includes('placehold.co')) {
+    return 'Generic placeholder image';
+  }
+  
+  if (lowerUrl.includes('books.google.com/books/content')) {
+    return 'Very low quality Google Books image';
+  }
+  
+  return 'Unknown quality issue';
+}
+
+/**
+ * Refresh book covers specifically for books with low quality covers
+ * @returns {Object} - Result object with refresh statistics
+ */
+function refreshBookCovers() {
+  try {
+    const lowQualityBooks = getBooksWithLowQualityCovers();
+    
+    if (lowQualityBooks.length === 0) {
+      return {
+        success: true,
+        refreshed: 0,
+        errors: 0,
+        message: 'No books with low quality covers found'
+      };
+    }
+    
+    const bookIds = lowQualityBooks.map(book => book.id);
+    const result = batchRefreshMetadata(bookIds);
+    
+    // Add book-specific information to the result
+    result.booksProcessed = lowQualityBooks.length;
+    result.bookDetails = lowQualityBooks;
+    
+    logUserAction('book_covers_refreshed', {
+      booksProcessed: lowQualityBooks.length,
+      refreshed: result.refreshed,
+      errors: result.errors
+    });
+    
+    return result;
+  } catch (error) {
+    console.error('Error refreshing book covers:', error);
+    return {
+      success: false,
+      refreshed: 0,
+      errors: 1,
+      message: `Book cover refresh failed: ${error.message}`
+    };
+  }
+}
+
+/**
+ * Manually set a custom cover URL for a book entry
+ * @param {string} entryId - The ID of the book entry
+ * @param {string} coverUrl - The new cover URL
+ * @returns {Object} - Result object
+ */
+function setCustomBookCover(entryId, coverUrl) {
+  try {
+    // Validate the cover URL
+    if (!coverUrl || coverUrl.trim() === '') {
+      return { success: false, error: 'Cover URL is required' };
+    }
+    
+    // Basic URL validation
+    if (!coverUrl.startsWith('http://') && !coverUrl.startsWith('https://')) {
+      return { success: false, error: 'Cover URL must start with http:// or https://' };
+    }
+    
+    // Test if the URL is accessible
+    const testResponse = UrlFetchApp.fetch(coverUrl, {
+      method: 'HEAD',
+      muteHttpExceptions: true
+    });
+    
+    if (testResponse.getResponseCode() !== 200) {
+      return { success: false, error: 'Cover URL is not accessible' };
+    }
+    
+    // Check if it's actually an image
+    const contentType = testResponse.getHeaders()['Content-Type'] || '';
+    if (!contentType.startsWith('image/')) {
+      return { success: false, error: 'URL does not point to an image' };
+    }
+    
+    // Update the entry with the new cover URL
+    const updateData = {
+      coverurl: coverUrl
+    };
+    
+    const updateResult = updateEntry(entryId, updateData);
+    
+    if (updateResult.success) {
+      logUserAction('custom_book_cover_set', { entryId: entryId });
+      return {
+        success: true,
+        message: 'Custom cover set successfully',
+        coverUrl: coverUrl
+      };
+    } else {
+      return updateResult;
+    }
+    
+  } catch (error) {
+    console.error('Error setting custom book cover:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
