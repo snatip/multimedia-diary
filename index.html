@@ -322,7 +322,71 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+        background: 
+          radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+          radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+          radial-gradient(circle at 40% 20%, rgba(16, 185, 129, 0.05) 0%, transparent 50%),
+          linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        animation: backgroundShift 20s ease-in-out infinite;
+      }
+
+      /* Animated floating particles */
+      .room-background::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: 
+          radial-gradient(2px 2px at 20px 30px, rgba(255, 255, 255, 0.1), transparent),
+          radial-gradient(2px 2px at 40px 70px, rgba(255, 255, 255, 0.08), transparent),
+          radial-gradient(1px 1px at 90px 40px, rgba(255, 255, 255, 0.06), transparent),
+          radial-gradient(1px 1px at 130px 80px, rgba(255, 255, 255, 0.07), transparent),
+          radial-gradient(2px 2px at 160px 30px, rgba(255, 255, 255, 0.09), transparent);
+        background-repeat: repeat;
+        background-size: 200px 100px;
+        animation: particleFloat 30s linear infinite;
+        opacity: 0.6;
+      }
+
+      /* Subtle grid overlay */
+      .room-background::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+        pointer-events: none;
+      }
+
+      @keyframes backgroundShift {
+        0%, 100% {
+          background-position: 0% 0%;
+        }
+        50% {
+          background-position: 100% 100%;
+        }
+      }
+
+      @keyframes particleFloat {
+        0% {
+          transform: translateY(0px) translateX(0px);
+        }
+        25% {
+          transform: translateY(-20px) translateX(10px);
+        }
+        50% {
+          transform: translateY(-10px) translateX(-10px);
+        }
+        75% {
+          transform: translateY(-30px) translateX(5px);
+        }
+        100% {
+          transform: translateY(0px) translateX(0px);
+        }
       }
 
       .room-zone {
@@ -333,12 +397,31 @@
         cursor: pointer;
         transition: all var(--transition-normal);
         overflow: hidden;
+        backdrop-filter: blur(10px);
+      }
+
+      .room-zone::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at center, rgba(99, 102, 241, 0.1), transparent 70%);
+        opacity: 0;
+        transition: opacity var(--transition-normal);
+      }
+
+      .room-zone:hover::before {
+        opacity: 1;
       }
 
       .room-zone:hover {
-        transform: translateY(-5px);
+        transform: translateY(-5px) scale(1.02);
         border-color: var(--accent-primary);
-        box-shadow: var(--shadow-xl);
+        box-shadow: 
+          var(--shadow-xl),
+          0 0 30px rgba(99, 102, 241, 0.3);
       }
 
       .zone-content {
@@ -1679,6 +1762,128 @@
         text-align: center;
       }
 
+      /* Hype Rating Fire Effect */
+      .hype-rating-container {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        position: relative;
+      }
+
+      .hype-rating-fire {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+      }
+
+      .hype-rating-fire::before {
+        content: '🔥';
+        position: absolute;
+        left: -20px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1.2em;
+        animation: fireFlicker 1.5s ease-in-out infinite alternate;
+        filter: drop-shadow(0 0 8px rgba(255, 94, 0, 0.8));
+      }
+
+      .hype-rating-fire.high-hype::before {
+        content: '🔥🔥';
+        left: -35px;
+        animation: fireFlicker 1s ease-in-out infinite alternate, fireIntensity 2s ease-in-out infinite;
+      }
+
+      .hype-rating-fire.max-hype::before {
+        content: '🔥🔥🔥';
+        left: -50px;
+        animation: fireFlicker 0.8s ease-in-out infinite alternate, fireIntensity 1.5s ease-in-out infinite, firePulse 1s ease-in-out infinite;
+      }
+
+      .hype-rating-value {
+        background: linear-gradient(135deg, #ff6200, #ff9500, #ff6200);
+        background-size: 200% 200%;
+        color: white;
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--radius-md);
+        font-weight: 700;
+        min-width: 45px;
+        text-align: center;
+        border: 2px solid rgba(255, 94, 0, 0.3);
+        box-shadow: 
+          0 0 20px rgba(255, 94, 0, 0.4),
+          inset 0 0 10px rgba(255, 255, 255, 0.2);
+        animation: hypeGlow 3s ease-in-out infinite alternate;
+        position: relative;
+        z-index: 1;
+      }
+
+      .hype-rating-value::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.3) 50%, transparent 70%);
+        border-radius: var(--radius-md);
+        animation: hypeShine 4s ease-in-out infinite;
+        z-index: -1;
+      }
+
+      @keyframes fireFlicker {
+        0% {
+          transform: scale(1) rotate(-3deg);
+          opacity: 0.8;
+        }
+        50% {
+          transform: scale(1.1) rotate(2deg);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1.05) rotate(-1deg);
+          opacity: 0.9;
+        }
+      }
+
+      @keyframes fireIntensity {
+        0%, 100% {
+          filter: brightness(1);
+        }
+        50% {
+          filter: brightness(1.2);
+        }
+      }
+
+      @keyframes firePulse {
+        0%, 100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.1);
+        }
+      }
+
+      @keyframes hypeGlow {
+        0% {
+          background-position: 0% 50%;
+          box-shadow: 0 0 15px rgba(255, 94, 0, 0.4);
+        }
+        100% {
+          background-position: 100% 50%;
+          box-shadow: 0 0 25px rgba(255, 94, 0, 0.8);
+        }
+      }
+
+      @keyframes hypeShine {
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(100%);
+        }
+      }
+
       .rating-stars {
         display: flex;
         gap: var(--spacing-xs);
@@ -2763,9 +2968,55 @@
                   <i class="fas fa-fire"></i>
                   Hype Rating (1-10)
                 </label>
-                <div class="rating-container">
+                <div class="hype-rating-container">
                   <input type="range" id="pendingHype" min="1" max="10" value="7" />
-                  <span id="pendingHypeValue" class="rating-value">7</span>
+                  <div style="
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    position: relative;
+                  " id="pendingHypeFire">
+                    <!-- Fire emojis positioned properly -->
+                    <span style="
+                      position: relative;
+                      display: flex;
+                      align-items: center;
+                      gap: 2px;
+                      margin-right: 4px;
+                    ">
+                      <span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate;">🔥</span>
+                      <span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate 0.2s;">🔥</span>
+                    </span>
+                    
+                    <!-- Orange rating box with contained shine effect -->
+                    <span style="
+                      background: linear-gradient(135deg, #ff6200, #ff9500, #ff6200);
+                      background-size: 200% 200%;
+                      color: white;
+                      padding: 4px 8px;
+                      border-radius: 6px;
+                      font-weight: 700;
+                      font-size: 12px;
+                      min-width: 40px;
+                      text-align: center;
+                      border: 2px solid rgba(255, 94, 0, 0.3);
+                      box-shadow: 0 0 15px rgba(255, 94, 0, 0.4);
+                      animation: hypeGlow 3s ease-in-out infinite alternate;
+                      position: relative;
+                      overflow: hidden;
+                    " id="pendingHypeValue">7/10
+                      <!-- Contained shine effect -->
+                      <span style="
+                        position: absolute;
+                        top: 0;
+                        left: -100%;
+                        width: 100%;
+                        height: 100%;
+                        background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.4) 50%, transparent 70%);
+                        animation: hypeShine 4s ease-in-out infinite;
+                      "></span>
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -3203,6 +3454,8 @@
 
       // Pending view functions
       function renderPending() {
+        console.log(`=== RENDER PENDING DEBUG START ===`);
+        
         const container = document.getElementById("pendingContainer");
         if (!container) {
           console.error("Pending container not found");
@@ -3212,6 +3465,11 @@
         container.innerHTML = "";
 
         let pendingEntries = currentEntries.filter((entry) => entry.status === "pending");
+        
+        console.log(`Total entries: ${currentEntries.length}`);
+        console.log(`Pending entries found: ${pendingEntries.length}`);
+        console.log(`Current entries before filtering:`, currentEntries.map(e => ({id: e.id, status: e.status, rating: e.rating})));
+        console.log(`Pending entries after filtering:`, pendingEntries.map(e => ({id: e.id, status: e.status, rating: e.rating})));
 
         // Apply search filter
         const searchInput = document.getElementById("pendingSearch");
@@ -3335,6 +3593,8 @@
 
       // Update renderTimeline to renderOverview
       function renderOverview() {
+        console.log(`=== RENDER OVERVIEW DEBUG START ===`);
+        
         const container = document.getElementById("overviewContainer");
         if (!container) {
           console.error("Overview container not found");
@@ -3345,7 +3605,11 @@
 
         // Only exclude explicitly pending items
         let filteredEntries = currentEntries.filter((entry) => entry.status !== "pending");
-
+        
+        console.log(`Total entries: ${currentEntries.length}`);
+        console.log(`Filtered entries (non-pending): ${filteredEntries.length}`);
+        console.log(`Current entries before filtering:`, currentEntries.map(e => ({id: e.id, status: e.status, rating: e.rating})));
+        
         // Apply search filter
         const searchInput = document.getElementById("overviewSearch");
         const searchTerm = searchInput?.value.toLowerCase() || "";
@@ -3615,33 +3879,81 @@
       async function fallbackToPlaceholder(entryId) {
         event.stopPropagation();
         
+        console.log(`=== FRONTEND FALLBACK TO PLACEHOLDER DEBUG START ===`);
+        console.log(`Entry ID: ${entryId}`);
+        
         const entry = currentEntries.find((e) => e.id === entryId);
         if (!entry) return;
+
+        // Store original state for verification
+        const originalStatus = entry.status;
+        const originalRating = entry.rating;
+        
+        console.log(`ORIGINAL FRONTEND STATE:`);
+        console.log(`Status: '${originalStatus}'`);
+        console.log(`Rating: '${originalRating}'`);
+        console.log(`Full entry object:`, entry);
 
         showToast("Generating placeholder image...", "info", 1500);
 
         try {
           const result = await new Promise((resolve, reject) => {
+            console.log(`CALLING BACKEND fallbackToPlaceholder...`);
             google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).fallbackToPlaceholder(entryId);
           });
 
+          console.log(`BACKEND RESULT RECEIVED:`, result);
+
           if (result.success) {
+            console.log(`BACKEND SUCCESS - Checking for unauthorized changes...`);
+            
             // Update the entry in the current entries array
             entry.coverurl = result.coverURL;
             
+            // SECURITY CHECK: Ensure status and rating haven't changed
+            if (entry.status !== originalStatus) {
+              console.error(`🚨 FRONTEND FALLBACK: Status changed from ${originalStatus} to ${entry.status} during placeholder update!`);
+              console.error(`This suggests backend is modifying status without permission!`);
+              // Revert the status change
+              entry.status = originalStatus;
+              console.error(`Status reverted to: ${entry.status}`);
+            }
+            
+            if (entry.rating !== originalRating) {
+              console.error(`🚨 FRONTEND FALLBACK: Rating changed from ${originalRating} to ${entry.rating} during placeholder update!`);
+              console.error(`This suggests backend is modifying rating without permission!`);
+              // Revert the rating change
+              entry.rating = originalRating;
+              console.error(`Rating reverted to: ${entry.rating}`);
+            }
+            
+            console.log(`FINAL FRONTEND STATE:`);
+            console.log(`Status: '${entry.status}'`);
+            console.log(`Rating: '${entry.rating}'`);
+            console.log(`Cover URL: '${entry.coverurl}'`);
+            
+            // Check which view will be rendered
+            const targetView = entry.status === 'pending' ? 'renderPending()' : 'renderOverview()';
+            console.log(`Will call: ${targetView}`);
+            
             // Re-render the appropriate view based on entry status
             if (entry.status === 'pending') {
+              console.log(`Calling renderPending()...`);
               renderPending();
             } else {
+              console.log(`Calling renderOverview()...`);
               renderOverview();
             }
             updateRoomCounts();
             showToast("Placeholder image applied successfully!", "success");
+            
+            console.log(`=== FRONTEND FALLBACK TO PLACEHOLDER DEBUG END ===`);
           } else {
             throw new Error(result.error);
           }
         } catch (error) {
           console.error("Error falling back to placeholder:", error);
+          console.log(`=== FRONTEND FALLBACK TO PLACEHOLDER DEBUG END (ERROR) ===`);
           showToast("Error: " + error.message, "error");
         }
       }
@@ -3652,33 +3964,85 @@
       async function requestNewCover(entryId) {
         event.stopPropagation();
         
+        console.log(`=== FRONTEND COVER UPDATE DEBUG START ===`);
+        console.log(`Entry ID: ${entryId}`);
+        
         const entry = currentEntries.find((e) => e.id === entryId);
         if (!entry) return;
 
+        // Store original state for verification
+        const originalStatus = entry.status;
+        const originalRating = entry.rating;
+        
+        console.log(`ORIGINAL FRONTEND STATE:`);
+        console.log(`Status: '${originalStatus}'`);
+        console.log(`Rating: '${originalRating}'`);
+        console.log(`Full entry object:`, entry);
+        
         showToast("Searching for alternative cover...", "info", 2000);
 
         try {
           const result = await new Promise((resolve, reject) => {
+            console.log(`CALLING BACKEND requestNewCover...`);
             google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).requestNewCover(entryId);
           });
 
+          console.log(`BACKEND RESULT RECEIVED:`, result);
+
           if (result.success) {
-            // Update the entry in the current entries array
+            console.log(`BACKEND SUCCESS - Checking for unauthorized changes...`);
+            
+            // CRITICAL FIX: Verify no unintended changes occurred
+            console.log(`Cover update result:`, result);
+            console.log(`Original status: ${originalStatus}, Original rating: ${originalRating}`);
+            
+            // Update only the cover URL, preserve all other data
             entry.coverurl = result.coverURL;
+            
+            // SECURITY CHECK: Ensure status and rating haven't changed
+            if (entry.status !== originalStatus) {
+              console.error(`🚨 FRONTEND: Status changed from ${originalStatus} to ${entry.status} during cover update!`);
+              console.error(`This suggests backend is modifying status without permission!`);
+              // Revert the status change
+              entry.status = originalStatus;
+              console.error(`Status reverted to: ${entry.status}`);
+            }
+            
+            if (entry.rating !== originalRating) {
+              console.error(`🚨 FRONTEND: Rating changed from ${originalRating} to ${entry.rating} during cover update!`);
+              console.error(`This suggests backend is modifying rating without permission!`);
+              // Revert the rating change
+              entry.rating = originalRating;
+              console.error(`Rating reverted to: ${entry.rating}`);
+            }
+            
+            console.log(`FINAL FRONTEND STATE:`);
+            console.log(`Status: '${entry.status}'`);
+            console.log(`Rating: '${entry.rating}'`);
+            console.log(`Cover URL: '${entry.coverurl}'`);
+            
+            // Check which view will be rendered
+            const targetView = entry.status === 'pending' ? 'renderPending()' : 'renderOverview()';
+            console.log(`Will call: ${targetView}`);
             
             // Re-render the appropriate view based on entry status
             if (entry.status === 'pending') {
+              console.log(`Calling renderPending()...`);
               renderPending();
             } else {
+              console.log(`Calling renderOverview()...`);
               renderOverview();
             }
             updateRoomCounts();
             showToast("New cover found and applied!", "success");
+            
+            console.log(`=== FRONTEND COVER UPDATE DEBUG END ===`);
           } else {
             throw new Error(result.error);
           }
         } catch (error) {
           console.error("Error requesting new cover:", error);
+          console.log(`=== FRONTEND COVER UPDATE DEBUG END (ERROR) ===`);
           showToast("Error: " + error.message, "error");
         }
       }
@@ -4033,12 +4397,12 @@
               <div style="position: relative; display: inline-block;">
                 <img src="${coverImage}" alt="${entry.title}" style="width: 200px; height: auto; border-radius: 8px; box-shadow: var(--shadow-lg);">
                 <div class="modal-cover-options">
-                  <button class="cover-option-btn fallback" onclick="fallbackToPlaceholder('${entry.id}')" title="Use placeholder image">
+                  <button type="button" class="cover-option-btn fallback" onclick="fallbackToPlaceholder('${entry.id}')" title="Use placeholder image">
                     <i class="fas fa-image"></i>
                     Use Placeholder
                   </button>
                   ${entry.type === 'book' ? `
-                    <button class="cover-option-btn refresh" onclick="requestNewCover('${entry.id}')" title="Get new cover from alternative sources">
+                    <button type="button" class="cover-option-btn refresh" onclick="requestNewCover('${entry.id}')" title="Get new cover from alternative sources">
                       <i class="fas fa-refresh"></i>
                       New Cover
                     </button>
@@ -4173,7 +4537,60 @@
               <!-- Pending Section -->
               <div class="edit-section-pending" style="${entry.status !== "pending" ? "display:none;" : ""}">
                   <div class="view-mode">
-                    ${entry.hyperating ? `<p><strong>Hype:</strong> ${entry.hyperating}/10</p>` : ""}
+                    ${entry.hyperating ? `
+                      <div style="margin: 10px 0; display: flex; align-items: center; gap: 8px;">
+                        <strong>Hype:</strong>
+                        <div style="
+                          display: flex;
+                          align-items: center;
+                          gap: 4px;
+                          position: relative;
+                        ">
+                          <!-- Fire emojis positioned properly -->
+                          <span style="
+                            position: relative;
+                            display: flex;
+                            align-items: center;
+                            gap: 2px;
+                            margin-right: 4px;
+                          ">
+                            ${entry.hyperating >= 8 ? '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate;">🔥</span>' : '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate;">🔥</span>'}
+                            ${entry.hyperating >= 9 ? '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate 0.2s;">🔥</span>' : ''}
+                            ${entry.hyperating >= 10 ? '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate 0.4s;">🔥</span>' : ''}
+                          </span>
+                          
+                          <!-- Orange rating box with contained shine effect -->
+                          <span style="
+                            background: linear-gradient(135deg, #ff6200, #ff9500, #ff6200);
+                            background-size: 200% 200%;
+                            color: white;
+                            padding: 4px 8px;
+                            border-radius: 6px;
+                            font-weight: 700;
+                            font-size: 12px;
+                            min-width: 40px;
+                            text-align: center;
+                            border: 2px solid rgba(255, 94, 0, 0.3);
+                            box-shadow: 0 0 15px rgba(255, 94, 0, 0.4);
+                            animation: hypeGlow 3s ease-in-out infinite alternate;
+                            position: relative;
+                            overflow: hidden;
+                          ">${entry.hyperating}/10
+                            <!-- Contained shine effect -->
+                            <span style="
+                              content: '';
+                              position: absolute;
+                              top: 0;
+                              left: -100%;
+                              width: 100%;
+                              height: 100%;
+                              background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.4) 50%, transparent 70%);
+                              animation: hypeShine 4s ease-in-out infinite;
+                            "></span>
+                          </span>
+                        </div>
+                      </div>
+                    ` : ""}
                     ${entry.tags ? `<p><strong>Tags:</strong> ${entry.tags}</p>` : ""}
                   </div>
                   <div class="form-group edit-mode">
@@ -4182,9 +4599,62 @@
                   </div>
                    <div class="form-group edit-mode">
                         <label for="editHypeRating">Hype Rating (1-10)</label>
-                        <div class="rating-container">
-                            <input type="range" id="editHypeRating" min="1" max="10" value="${hypeRatingValue}">
-                            <span id="editHypeRatingValue" class="rating-value">${hypeRatingValue}</span>
+                        <div style="
+                          display: flex;
+                          align-items: center;
+                          gap: 12px;
+                          margin-top: 8px;
+                        ">
+                          <input type="range" id="editHypeRating" min="1" max="10" value="${hypeRatingValue}" style="flex: 1;">
+                          
+                          <div style="
+                            display: flex;
+                            align-items: center;
+                            gap: 4px;
+                            position: relative;
+                          ">
+                            <!-- Fire emojis positioned properly -->
+                            <span style="
+                              position: relative;
+                              display: flex;
+                              align-items: center;
+                              gap: 2px;
+                              margin-right: 4px;
+                            " id="editHypeRatingFire">
+                              ${hypeRatingValue >= 8 ? '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate;">🔥</span>' : '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate;">🔥</span>'}
+                              ${hypeRatingValue >= 9 ? '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate 0.2s;">🔥</span>' : ''}
+                              ${hypeRatingValue >= 10 ? '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate 0.4s;">🔥</span>' : ''}
+                            </span>
+                            
+                            <!-- Orange rating box with contained shine effect -->
+                            <span style="
+                              background: linear-gradient(135deg, #ff6200, #ff9500, #ff6200);
+                              background-size: 200% 200%;
+                              color: white;
+                              padding: 4px 8px;
+                              border-radius: 6px;
+                              font-weight: 700;
+                              font-size: 12px;
+                              min-width: 40px;
+                              text-align: center;
+                              border: 2px solid rgba(255, 94, 0, 0.3);
+                              box-shadow: 0 0 15px rgba(255, 94, 0, 0.4);
+                              animation: hypeGlow 3s ease-in-out infinite alternate;
+                              position: relative;
+                              overflow: hidden;
+                            " id="editHypeRatingValue">${hypeRatingValue}/10
+                              <!-- Contained shine effect -->
+                              <span style="
+                                position: absolute;
+                                top: 0;
+                                left: -100%;
+                                width: 100%;
+                                height: 100%;
+                                background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.4) 50%, transparent 70%);
+                                animation: hypeShine 4s ease-in-out infinite;
+                              "></span>
+                            </span>
+                          </div>
                         </div>
                   </div>
               </div>
@@ -4237,7 +4707,47 @@
         }
 
         const editHypeRating = document.getElementById("editHypeRating");
-        if (editHypeRating) editHypeRating.addEventListener("input", (e) => (document.getElementById("editHypeRatingValue").textContent = e.target.value));
+        if (editHypeRating) {
+          editHypeRating.addEventListener("input", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const value = e.target.value;
+            
+            // Update the rating value display
+            const ratingValueElement = document.getElementById("editHypeRatingValue");
+            if (ratingValueElement) {
+              ratingValueElement.innerHTML = value + '/10' + `
+                <!-- Contained shine effect -->
+                <span style="
+                  position: absolute;
+                  top: 0;
+                  left: -100%;
+                  width: 100%;
+                  height: 100%;
+                  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.4) 50%, transparent 70%);
+                  animation: hypeShine 4s ease-in-out infinite;
+                "></span>
+              `;
+            }
+            
+            // Update fire effect based on hype rating value
+            const fireElement = document.getElementById("editHypeRatingFire");
+            if (fireElement) {
+              fireElement.innerHTML = `
+                ${value >= 8 ? '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate;">🔥</span>' : '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate;">🔥</span>'}
+                ${value >= 9 ? '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate 0.2s;">🔥</span>' : ''}
+                ${value >= 10 ? '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate 0.4s;">🔥</span>' : ''}
+              `;
+            }
+          });
+          
+          // Prevent form submission when interacting with slider
+          editHypeRating.addEventListener("change", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          });
+        }
       }
 
       // Add this new function after the openEntryModal function
@@ -4344,6 +4854,22 @@
       }
 
       async function saveEntryChanges(event) {
+        console.log(`=== SAVE ENTRY CHANGES DEBUG START ===`);
+        console.log(`Event type: ${event.type}`);
+        console.log(`Event target:`, event.target);
+        console.log(`Event submitter:`, event.submitter);
+        
+        // Check if this is a legitimate save attempt
+        const submitter = event.submitter;
+        if (submitter && (submitter.classList.contains('cover-option-btn') || 
+            submitter.textContent.includes('Placeholder') || 
+            submitter.textContent.includes('New Cover'))) {
+          console.error(`🚨 ABORTING SAVE: Cover button triggered form submission!`);
+          console.error(`This should not happen - buttons should have type="button"`);
+          event.preventDefault();
+          return;
+        }
+        
         event.preventDefault();
 
         const entryId = document.getElementById("editEntryId").value;
@@ -4354,8 +4880,13 @@
           return;
         }
 
+        console.log(`Original entry state:`, entry);
+        console.log(`Original status: '${entry.status}'`);
+        console.log(`Original rating: '${entry.rating}'`);
+
         // Determine new status based on dates and rating
         const newStatus = updateEditModeStatus();
+        console.log(`Calculated newStatus: '${newStatus}'`);
 
         const updateData = {
           title: document.getElementById("editTitle").value,
@@ -4367,6 +4898,8 @@
           status: newStatus,
         };
 
+        console.log(`Initial updateData:`, updateData);
+
         // Add author if it's a book
         const authorField = document.getElementById("editAuthor");
         if (authorField) {
@@ -4375,13 +4908,17 @@
 
         // Handle status updates for no-dates items based on rating AND current status
         if (!updateData.startDate && !updateData.finishDate) {
+          console.log(`No dates detected - applying rating-based status logic...`);
           // Keep the item as completed-no-dates if it already is, regardless of rating
           if (entry.status === "completed-no-dates") {
             updateData.status = "completed-no-dates";
+            console.log(`→ Keeping existing completed-no-dates status`);
           } else if (updateData.rating && updateData.rating !== 0) {
             updateData.status = "completed-no-dates";
+            console.log(`→ Setting to completed-no-dates (has rating > 0)`);
           } else {
             updateData.status = "in-progress-no-dates";
+            console.log(`→ Setting to in-progress-no-dates (no rating or rating = 0)`);
           }
         }
 
@@ -4391,7 +4928,9 @@
         if (tagsField) updateData.tags = tagsField.value;
         if (hypeRatingField) updateData.hypeRating = parseInt(hypeRatingField.value);
 
-        console.log("Updating entry with data:", updateData); // Debug log
+        console.log(`Final updateData being sent:`, updateData);
+        console.log(`Original status: '${entry.status}' → Final status: '${updateData.status}'`);
+        console.log(`Original rating: '${entry.rating}' → Final rating: '${updateData.rating}'`);
 
         try {
           const result = await new Promise((resolve, reject) => {
@@ -4412,11 +4951,13 @@
             updateRoomCounts();
 
             showToast("Entry updated successfully", "success");
+            console.log(`=== SAVE ENTRY CHANGES DEBUG END ===`);
           } else {
             throw new Error(result.error);
           }
         } catch (error) {
           console.error("Error updating entry:", error);
+          console.log(`=== SAVE ENTRY CHANGES DEBUG END (ERROR) ===`);
           showToast("Error: " + error.message, "error");
         }
       }
@@ -4681,7 +5222,51 @@
 
       // Update pending hype rating display
       document.getElementById("pendingHype").addEventListener("input", (e) => {
-        document.getElementById("pendingHypeValue").textContent = e.target.value;
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const value = e.target.value;
+        
+        // Update the rating value display
+        const ratingValueElement = document.getElementById("pendingHypeValue");
+        if (ratingValueElement) {
+          ratingValueElement.innerHTML = value + '/10' + `
+            <!-- Contained shine effect -->
+            <span style="
+              position: absolute;
+              top: 0;
+              left: -100%;
+              width: 100%;
+              height: 100%;
+              background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.4) 50%, transparent 70%);
+              animation: hypeShine 4s ease-in-out infinite;
+            "></span>
+          `;
+        }
+        
+        // Update fire effect based on hype rating value
+        const fireElement = document.getElementById("pendingHypeFire");
+        if (fireElement) {
+          // Show 1 fire for values 1-7, 2 fires for 8-9, 3 fires for 10
+          let fireHTML = '';
+          if (value >= 1) {
+            fireHTML += '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate;">🔥</span>';
+          }
+          if (value >= 8) {
+            fireHTML += '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate 0.2s;">🔥</span>';
+          }
+          if (value >= 10) {
+            fireHTML += '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate 0.4s;">🔥</span>';
+          }
+          
+          fireElement.querySelector('span').innerHTML = fireHTML;
+        }
+      });
+      
+      // Prevent form submission when interacting with pending hype slider
+      document.getElementById("pendingHype").addEventListener("change", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
       });
 
       // Search functionality
