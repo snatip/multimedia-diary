@@ -248,7 +248,8 @@ function getAllEntries() {
       });
       
       // Set status based on data with improved logic for item types
-      if (!entry.status) {
+      // Only recalculate if status is missing or empty, preserve existing status
+      if (!entry.status || entry.status === '') {
         if (!entry.startdate && !entry.finishdate) {
           // Type 1: No dates - check if has rating to determine if finished
           if (entry.rating && entry.rating !== 'N/A' && entry.rating !== '' && typeof entry.rating === 'number' && entry.rating > 0) {
@@ -269,6 +270,7 @@ function getAllEntries() {
           entry.status = 'in-progress-no-dates'; // fallback
         }
       }
+      // Important: If status already exists (including 'pending'), preserve it!
       
       entries.push(entry);
     }
@@ -451,6 +453,99 @@ function testSetup() {
     }
   } catch (error) {
     console.error('Setup test failed:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Request a new cover for an existing entry
+ */
+function requestNewCover(entryId) {
+  try {
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === entryId) {
+        // Get entry details and preserve original status
+        const entry = {};
+        headers.forEach((header, index) => {
+          entry[header.toLowerCase()] = data[i][index];
+        });
+        
+        // Fetch new metadata with alternative sources
+        const newMetadata = fetchAlternativeMetadata(entry.title, entry.type);
+        
+        // Use updateEntry to preserve all existing data including status
+        const updateData = {
+          coverurl: newMetadata.coverURL,
+          metadata: JSON.stringify(newMetadata)
+        };
+        
+        const result = updateEntry(entryId, updateData);
+        
+        if (result.success) {
+          return { 
+            success: true, 
+            coverURL: newMetadata.coverURL,
+            message: 'New cover requested successfully'
+          };
+        } else {
+          throw new Error(result.error);
+        }
+      }
+    }
+    
+    throw new Error('Entry not found');
+  } catch (error) {
+    console.error('Error requesting new cover:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Fallback to placeholder image for an entry
+ */
+function fallbackToPlaceholder(entryId) {
+  try {
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === entryId) {
+        // Get entry details and preserve original status
+        const entry = {};
+        headers.forEach((header, index) => {
+          entry[header.toLowerCase()] = data[i][index];
+        });
+        
+        // Generate placeholder URL
+        const placeholderUrl = generateQualityPlaceholder(entry.title, entry.type);
+        
+        // Use updateEntry to preserve all existing data including status
+        const updateData = {
+          coverurl: placeholderUrl
+        };
+        
+        const result = updateEntry(entryId, updateData);
+        
+        if (result.success) {
+          return { 
+            success: true, 
+            coverURL: placeholderUrl,
+            message: 'Fallback to placeholder completed successfully'
+          };
+        } else {
+          throw new Error(result.error);
+        }
+      }
+    }
+    
+    throw new Error('Entry not found');
+  } catch (error) {
+    console.error('Error falling back to placeholder:', error);
     return { success: false, error: error.message };
   }
 }
