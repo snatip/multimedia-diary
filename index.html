@@ -3000,7 +3000,7 @@
                 Hype Rating (1-10)
               </label>
               <div class="rating-container">
-                <input type="range" id="pendingHype" min="1" max="10" value="7" />
+                <input type="range" id="pendingHype" min="1" max="10" value="5" />
                 <div style="
                   display: flex;
                   align-items: center;
@@ -3016,7 +3016,6 @@
                     margin-right: 4px;
                   ">
                     <span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate;">🔥</span>
-                    <span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate 0.2s;">🔥</span>
                   </span>
                   
                   <!-- Orange rating box with contained shine effect -->
@@ -3035,7 +3034,7 @@
                     animation: hypeGlow 3s ease-in-out infinite alternate;
                     position: relative;
                     overflow: hidden;
-                  " id="pendingHypeValue">7/10
+                  " id="pendingHypeValue">5/10
                     <!-- Contained shine effect -->
                     <span style="
                       position: absolute;
@@ -4175,9 +4174,9 @@
           author: document.getElementById("authorFullWidth").value.trim(),
           startDate: document.getElementById("startDate").value,
           finishDate: finishDateValue,
-          rating: finishDateValue ? parseInt(document.getElementById("rating").value) : null,
           notes: document.getElementById("notes").value.trim(),
-          isFinished: document.getElementById("isFinished")?.checked || false, // Add this line
+          isFinished: document.getElementById("isFinished")?.checked || false,
+          rating: finishDateValue || isFinished ? parseInt(document.getElementById("rating").value) : null,
         };
 
         // Basic validation
@@ -4611,8 +4610,8 @@
                             gap: 2px;
                             margin-right: 4px;
                           ">
-                            ${entry.hyperating >= 8 ? '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate;">🔥</span>' : '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate;">🔥</span>'}
-                            ${entry.hyperating >= 9 ? '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate 0.2s;">🔥</span>' : ''}
+                            <span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate;">🔥</span>
+                            ${entry.hyperating >= 8 ? '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate 0.2s;">🔥</span>' : ''}
                             ${entry.hyperating >= 10 ? '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate 0.4s;">🔥</span>' : ''}
                           </span>
                           
@@ -4674,8 +4673,8 @@
                               gap: 2px;
                               margin-right: 4px;
                             " id="editHypeRatingFire">
-                              ${hypeRatingValue >= 8 ? '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate;">🔥</span>' : '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate;">🔥</span>'}
-                              ${hypeRatingValue >= 9 ? '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate 0.2s;">🔥</span>' : ''}
+                              <span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate;">🔥</span>
+                              ${hypeRatingValue >= 8 ? '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate 0.2s;">🔥</span>' : ''}
                               ${hypeRatingValue >= 10 ? '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate 0.4s;">🔥</span>' : ''}
                             </span>
                             
@@ -4788,8 +4787,8 @@
             const fireElement = document.getElementById("editHypeRatingFire");
             if (fireElement) {
               fireElement.innerHTML = `
-                ${value >= 8 ? '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate;">🔥</span>' : '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate;">🔥</span>'}
-                ${value >= 9 ? '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate 0.2s;">🔥</span>' : ''}
+                <span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate;">🔥</span>
+                ${value >= 8 ? '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate 0.2s;">🔥</span>' : ''}
                 ${value >= 10 ? '<span style="font-size: 14px; animation: fireFlicker 1.5s ease-in-out infinite alternate 0.4s;">🔥</span>' : ''}
               `;
             }
@@ -5015,13 +5014,13 @@
         console.log(`=== DEBUGGING HYPE RATING ===`);
         console.log(`hypeRatingField element:`, hypeRatingField);
         console.log(`hypeRatingField exists: ${!!hypeRatingField}`);
-        if (hypeRatingField) {
+        if (entry.status === "pending") {
           console.log(`hypeRatingField.value: '${hypeRatingField.value}'`);
           console.log(`hypeRatingField.type: '${hypeRatingField.type}'`);
           console.log(`parseInt(hypeRatingField.value): ${parseInt(hypeRatingField.value)}`);
         }
         
-        if (hypeRatingField) {
+        if (entry.status === "pending") {
           const hypeRatingValue = parseInt(hypeRatingField.value);
           updateData.hyperating = hypeRatingValue; // CRITICAL FIX: Use correct field name
           console.log(`Setting hyperating to: ${hypeRatingValue}`);
@@ -5212,7 +5211,7 @@
 
         // Number keys: Switch views
         if (e.key >= "1" && e.key <= "5" && !e.target.matches("input, textarea")) {
-          const views = ["room", "pending", "timeline", "stats", "add"];
+          const views = ["room", "timeline", "pending", "stats", "add"];
           switchView(views[parseInt(e.key) - 1]);
         }
       }
@@ -5366,8 +5365,8 @@
 
       function resetPendingForm() {
         document.getElementById("addPendingForm").reset();
-        document.getElementById("pendingHype").value = 7;
-        document.getElementById("pendingHypeValue").textContent = 7;
+        document.getElementById("pendingHype").value = 5;
+        document.getElementById("pendingHypeValue").textContent = "5/10";
         
         // CRITICAL FIX: Hide author field when resetting form
         const authorSection = document.getElementById("pendingAuthorSection");
