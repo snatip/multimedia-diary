@@ -327,21 +327,21 @@ function getOpenLibraryCover(title) {
  */
 function generateQualityPlaceholder(title, type) {
   const colors = {
-    book: '#8B4513',
-    film: '#FF6B6B',
-    series: '#4ECDC4',
-    videogame: '#45B7D1',
-    paper: '#96CEB4'
+    videogame: "3b82f6",
+    film: "ef4444",
+    series: "06b6d4",
+    book: "8b5cf6",
+    paper: "10b981",
   };
   
-  const color = colors[type.toLowerCase()] || '#95A5A6';
+  const color = colors[type.toLowerCase()] || '6b7280';
   
   // Use a better placeholder service that generates book-like covers
   const encodedTitle = encodeURIComponent(title.substring(0, 30).toUpperCase());
   
   // Try multiple placeholder services in order of preference
   const placeholderServices = [
-    `https://placehold.co/300x450/${color.substring(1)}/FFFFFF?text=${encodedTitle}`,
+    `https://placehold.co/300x450/${color}/ffffff?text=${encodedTitle}`,
     `https://picsum.photos/seed/${encodeURIComponent(title)}/300/450.jpg`,
     `https://source.unsplash.com/300x450/?book,cover&sig=${encodeURIComponent(title)}`
   ];
@@ -542,18 +542,18 @@ function getDefaultMetadata() {
  */
 function getPlaceholderCover(type, title) {
   const colors = {
-    book: '#8B4513',
-    film: '#FF6B6B',
-    series: '#4ECDC4',
-    videogame: '#45B7D1',
-    paper: '#96CEB4'
+    videogame: "3b82f6",
+    film: "ef4444",
+    series: "06b6d4",
+    book: "8b5cf6",
+    paper: "10b981",
   };
   
-  const color = colors[type.toLowerCase()] || '#95A5A6';
-  const encodedTitle = encodeURIComponent(title.substring(0, 2).toUpperCase());
+  const color = colors[type.toLowerCase()] || '6b7280';
+  const encodedTitle = encodeURIComponent(title.substring(0, 30).toUpperCase());
   
   // Using a placeholder service (you might want to use a different one)
-  return `https://placehold.co/300x450/${color.substring(1)}/FFFFFF?text=${encodedTitle}`;
+  return `https://placehold.co/300x450/${color}/ffffff?text=${encodedTitle}`;
 }
 
 /**
